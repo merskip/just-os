@@ -1,14 +1,17 @@
 #![no_std]
 #![no_main]
+#![feature(abi_x86_interrupt)]
 
 use core::panic::PanicInfo;
 
 mod vga_buffer;
+mod interrupts;
 
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
     println!("Hello World{}", "!");
-    just_os::init();
+    
+    interrupts::init_idt();
     x86_64::instructions::interrupts::int3();
     
     loop {}
