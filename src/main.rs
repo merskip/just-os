@@ -15,7 +15,7 @@ pub extern "C" fn _start() -> ! {
     
     interrupts::init_idt();
     x86_64::instructions::interrupts::int3();
-    
+
     loop {}
 }
 
