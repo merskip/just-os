@@ -7,14 +7,15 @@ use core::panic::PanicInfo;
 // mod vga_buffer;
 mod video;
 mod interrupts;
+mod gdt;
 
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
     
     println!("Hello {}!", "world");
     
-    interrupts::init_idt();
-    x86_64::instructions::interrupts::int3();
+    interrupts::init();
+    gdt::init();
 
     loop {}
 }
