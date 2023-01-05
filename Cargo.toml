@@ -7,7 +7,7 @@ authors = ["Piotr Merski <merskip@gmail.com>"]
 [dependencies]
 bootloader = "0.9.23"
 volatile = "0.2.6"
-spin = "0.5.2"
+spin = "0.9.4"
 x86_64 = "0.14.10"
 
 [package.metadata.bootimage]
