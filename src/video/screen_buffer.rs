@@ -1,5 +1,7 @@
-use volatile::Volatile;
+use volatile::{Volatile};
 use super::CharacterColor;
+use core::ops::{Deref, DerefMut};
+
 
 #[derive(Debug, Clone, Copy)]
 #[repr(C)]
@@ -29,5 +31,19 @@ impl ScreenBuffer {
 
     pub fn fill_row(&mut self, row: usize, character: ScreenCharacter) {
         self.characters[row].fill(Volatile::new(character));
+    }
+}
+
+impl Deref for ScreenCharacter {
+    type Target = ScreenCharacter;
+
+    fn deref(&self) -> &ScreenCharacter {
+        &self
+    }
+}
+
+impl DerefMut for ScreenCharacter {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        self
     }
 }

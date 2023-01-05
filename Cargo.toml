@@ -6,7 +6,7 @@ authors = ["Piotr Merski <merskip@gmail.com>"]
 
 [dependencies]
 bootloader = "0.9.23"
-volatile = "0.2.6"
+volatile = "0.4.5"
 spin = "0.9.4"
 x86_64 = "0.14.10"
 
