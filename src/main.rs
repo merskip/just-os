@@ -4,7 +4,6 @@
 
 use core::panic::PanicInfo;
 
-// mod vga_buffer;
 mod video;
 mod interrupts;
 mod gdt;
