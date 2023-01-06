@@ -17,16 +17,14 @@ pub extern "C" fn _start() -> ! {
     gdt::init();
     interrupts::enable();
 
-    loop {
-        print!("-");
-        for _ in 0..1_000_000 {
-        }
-    }
+    interrupts::halt_loop();
 }
 
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
     println!("[PANIC!]");
     println!("{}", info);
-    loop {}
+    
+    interrupts::disable();
+    interrupts::halt_loop();
 }

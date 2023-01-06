@@ -2,7 +2,7 @@ use crate::{gdt, println, print};
 use lazy_static::lazy_static;
 use pic8259::ChainedPics;
 use spin::Mutex;
-use x86_64::structures::idt::{InterruptDescriptorTable, InterruptStackFrame};
+use x86_64::{structures::idt::{InterruptDescriptorTable, InterruptStackFrame}, instructions};
 
 const PIC_1_OFFSET: u8 = 32;
 const PIC_2_OFFSET: u8 = PIC_1_OFFSET + 8;
@@ -29,8 +29,19 @@ pub fn init() {
 }
 
 pub fn enable() {
-    x86_64::instructions::interrupts::enable();
+    instructions::interrupts::enable();
 }
+
+pub fn disable() {
+    instructions::interrupts::disable();
+}
+
+pub fn halt_loop() -> ! {
+    loop {
+        instructions::hlt();
+    }
+} 
+
 
 #[derive(Debug, Clone, Copy)]
 #[repr(u8)]
