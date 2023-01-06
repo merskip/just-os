@@ -3,16 +3,18 @@
 #![feature(abi_x86_interrupt)]
 
 use core::panic::PanicInfo;
+use bootloader::{BootInfo, entry_point};
 
 mod video;
 mod interrupts;
 mod gdt;
 
+entry_point!(kernel_main);
+
 #[no_mangle]
-pub extern "C" fn _start() -> ! {
-    
+fn kernel_main(boot_info: &'static BootInfo) -> ! {
     println!("Hello {}!", "world");
-    
+
     interrupts::init();
     gdt::init();
     interrupts::enable();
