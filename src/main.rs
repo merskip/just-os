@@ -15,6 +15,7 @@ pub extern "C" fn _start() -> ! {
     
     interrupts::init();
     gdt::init();
+    interrupts::enable();
 
     loop {}
 }
