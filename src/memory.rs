@@ -1,5 +1,5 @@
 use bootloader::bootinfo::{MemoryMap, MemoryRegionType};
-use x86_64::{structures::paging::{OffsetPageTable, PhysFrame, frame, FrameAllocator, Size4KiB}, PhysAddr};
+use x86_64::{structures::paging::{PhysFrame, FrameAllocator, Size4KiB}, PhysAddr};
 
 pub struct BootInfoFrameAllocator {
     memory_map: &'static MemoryMap,
