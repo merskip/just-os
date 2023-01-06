@@ -17,7 +17,11 @@ pub extern "C" fn _start() -> ! {
     gdt::init();
     interrupts::enable();
 
-    loop {}
+    loop {
+        print!("-");
+        for _ in 0..1_000_000 {
+        }
+    }
 }
 
 #[panic_handler]

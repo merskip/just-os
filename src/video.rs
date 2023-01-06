@@ -14,7 +14,8 @@ static VGA_BUFFER_ADDRESS: usize = 0xb8000;
 
 lazy_static! {
     static ref DEFAULT_COLOR: CharacterColor = CharacterColor::new(Color::Gray, Color::Black);
-    pub static ref SCREEN_WRITER: Mutex<ScreenWriter> = Mutex::new(ScreenWriter::new(*DEFAULT_COLOR, VGA_BUFFER_ADDRESS));
+    pub static ref SCREEN_WRITER: Mutex<ScreenWriter> =
+        Mutex::new(ScreenWriter::new(*DEFAULT_COLOR, VGA_BUFFER_ADDRESS));
 }
 
 use core::fmt;
@@ -28,12 +29,14 @@ impl fmt::Write for ScreenWriter {
 
 #[macro_export]
 macro_rules! print {
-    ( $( $arg:tt )* ) => {
-        {
+    ( $( $arg:tt )* ) => {{
             use core::fmt::Write;
-            $crate::video::SCREEN_WRITER.lock().write_fmt(format_args!($($arg)*)).unwrap();
-        }
-    };
+            use x86_64::instructions::interrupts;
+
+            interrupts::without_interrupts(|| {
+                $crate::video::SCREEN_WRITER.lock().write_fmt(format_args!($($arg)*)).unwrap();
+            });
+        }};
 }
 
 #[macro_export]
@@ -41,4 +44,3 @@ macro_rules! println {
     () => ($crate::print!("\n"));
     ( $($arg:tt)* ) => ($crate::print!("{}\n", format_args!($($arg)*)));
 }
-
