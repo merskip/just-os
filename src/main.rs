@@ -5,10 +5,14 @@
 
 extern crate alloc;
 
+#[macro_use]
+extern crate bitflags;
+
 use bootloader::{entry_point, BootInfo};
 use core::panic::PanicInfo;
 use x86_64::VirtAddr;
 
+use crate::rtc::RTC;
 use crate::task::executor::Executor;
 use crate::task::keyboard;
 
@@ -18,6 +22,7 @@ mod interrupts;
 mod memory;
 mod video;
 mod task;
+mod rtc;
 
 entry_point!(kernel_main);
 
@@ -33,6 +38,10 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
     interrupts::init();
     gdt::init();
     interrupts::enable();
+
+    let mut rtc = RTC::new();
+    let now = rtc.read_datetime();
+    println!("Now: {}", now);
 
     let mut executor = Executor::new();
     executor.spawn(keyboard::print_keypresses());

@@ -94,6 +94,7 @@ dependencies = [
 name = "just-os"
 version = "0.1.0"
 dependencies = [
+ "bitflags",
  "bootloader",
  "conquer-once",
  "crossbeam-queue",
