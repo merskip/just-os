@@ -9,11 +9,15 @@ use bootloader::{entry_point, BootInfo};
 use core::panic::PanicInfo;
 use x86_64::VirtAddr;
 
+use crate::task::simple_executor::SimpleExecutor;
+use crate::task::Task;
+
 mod allocator;
 mod gdt;
 mod interrupts;
 mod memory;
 mod video;
+mod task;
 
 entry_point!(kernel_main);
 
@@ -30,7 +34,20 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
     gdt::init();
     interrupts::enable();
 
+    let mut executor = SimpleExecutor::new();
+    executor.spawn(Task::new(example_task()));
+    executor.run();
+
     interrupts::halt_loop();
+}
+
+async fn example_task() {
+    let number = async_number().await;
+    println!("async number: {}", number);
+}
+
+async fn async_number() -> u32 {
+    42
 }
 
 #[alloc_error_handler]
