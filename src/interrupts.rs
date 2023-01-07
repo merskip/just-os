@@ -1,6 +1,5 @@
 use crate::{gdt, print, println};
 use lazy_static::lazy_static;
-use pc_keyboard::{layouts, HandleControl, Keyboard, ScancodeSet1, DecodedKey};
 use pic8259::ChainedPics;
 use spin::Mutex;
 use x86_64::{
@@ -87,9 +86,7 @@ extern "x86-interrupt" fn page_fault_handler(
     println!("Error Code: {:?}", error_code);
     println!("{:#?}", stack_frame);
     
-    loop {
-        
-    }
+    loop {}
 }
 
 extern "x86-interrupt" fn timer_interrupt_handler(_stack_frame: InterruptStackFrame) {

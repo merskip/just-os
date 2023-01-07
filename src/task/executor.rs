@@ -7,9 +7,6 @@ use core::task::{
 use alloc::{collections::BTreeMap, sync::Arc, task::Wake};
 use crossbeam_queue::ArrayQueue;
 use futures_util::Future;
-use x86_64::instructions::interrupts::enable_and_hlt;
-
-use crate::interrupts::enable;
 
 use super::{Task, TaskId};
 
