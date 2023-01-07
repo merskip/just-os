@@ -96,7 +96,7 @@ impl RTC {
     }
 
     fn is_updating(&mut self) -> bool {
-        let mut status_a = self.read_status_a();
+        let status_a = self.read_status_a();
         status_a.contains(StatusRegisterA::UPDATING)
     }
 
