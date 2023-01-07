@@ -24,7 +24,7 @@ pub enum Color {
 pub struct CharacterColor(u8);
 
 impl CharacterColor {
-    pub fn new(foreground: Color, background: Color) -> CharacterColor {
+    pub const fn new(foreground: Color, background: Color) -> CharacterColor {
         CharacterColor((background as u8) << 4 | (foreground as u8))
     }
 }

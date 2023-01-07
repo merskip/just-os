@@ -1,7 +1,6 @@
 use volatile::{Volatile};
-use super::CharacterColor;
+use super::{CharacterColor, Color};
 use core::ops::{Deref, DerefMut};
-
 
 #[derive(Debug, Clone, Copy)]
 #[repr(C)]
@@ -26,11 +25,18 @@ impl ScreenBuffer {
     pub fn copy_row(&mut self, target_row: usize, destination_row: usize) {
         let row = &self.characters[destination_row];
         self.characters[target_row] = row.clone();
-
     }
 
-    pub fn fill_row(&mut self, row: usize, character: ScreenCharacter) {
-        self.characters[row].fill(Volatile::new(character));
+    pub fn clear_screen(&mut self) {
+        for row in 0..SCREEN_HEIGHT {
+            self.clear_row(row);
+        }
+    }
+
+    pub fn clear_row(&mut self, row: usize) {
+        const CLEAR_COLOR: CharacterColor = CharacterColor::new(Color::Black, Color::Black);
+        const CLEAR_CHARACTER: ScreenCharacter = ScreenCharacter { character: 0b0, color_code: CLEAR_COLOR };
+        self.characters[row].fill(Volatile::new(CLEAR_CHARACTER));
     }
 }
 

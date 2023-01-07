@@ -34,7 +34,7 @@ macro_rules! print {
             use x86_64::instructions::interrupts;
 
             interrupts::without_interrupts(|| {
-                $crate::video::SCREEN_WRITER.lock().write_fmt(format_args!($($arg)*)).unwrap();
+                $crate::vga_video::SCREEN_WRITER.lock().write_fmt(format_args!($($arg)*)).unwrap();
             });
         }};
 }

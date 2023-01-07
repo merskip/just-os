@@ -54,11 +54,7 @@ impl ScreenWriter {
             for target_row in 0..SCREEN_HEIGHT - 1 {
                 self.screen_buffer.copy_row(target_row, target_row + 1);
             }
-            let clear_character = ScreenCharacter {
-                color_code: self.default_color,
-                character: b' ',
-            };
-            self.screen_buffer.fill_row(SCREEN_HEIGHT - 1, clear_character);
+            self.screen_buffer.clear_row(SCREEN_HEIGHT - 1);
             self.row = SCREEN_HEIGHT - 1;
         }
     }

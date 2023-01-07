@@ -20,7 +20,7 @@ mod allocator;
 mod gdt;
 mod interrupts;
 mod memory;
-mod video;
+mod vga_video;
 mod task;
 mod rtc;
 
