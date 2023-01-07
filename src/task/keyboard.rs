@@ -1,14 +1,12 @@
 use core::{
-    alloc::Layout,
     pin::Pin,
     task::{Context, Poll},
 };
 
-use alloc::task::Wake;
 use conquer_once::spin::OnceCell;
 use crossbeam_queue::ArrayQueue;
 use futures_util::{task::AtomicWaker, Stream, StreamExt};
-use pc_keyboard::{layouts, DecodedKey, HandleControl, Keyboard, KeyboardLayout, ScancodeSet1};
+use pc_keyboard::{layouts, DecodedKey, HandleControl, Keyboard, ScancodeSet1};
 
 use crate::{print, println};
 
