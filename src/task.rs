@@ -3,6 +3,7 @@ use core::{pin::Pin, future::Future, task::{Context, Poll}};
 use alloc::boxed::Box;
 
 pub mod simple_executor;
+pub mod keyboard;
 
 pub struct Task {
     future: Pin<Box<dyn Future<Output = ()>>>,

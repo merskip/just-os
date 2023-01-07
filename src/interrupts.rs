@@ -27,8 +27,6 @@ lazy_static! {
     };
     static ref PICS: Mutex<ChainedPics> =
         Mutex::new(unsafe { ChainedPics::new(PIC_1_OFFSET, PIC_2_OFFSET) });
-    static ref KEYBOARD: Mutex<Keyboard<layouts::Us104Key, ScancodeSet1>> =
-        Mutex::new(Keyboard::new(HandleControl::Ignore));
 }
 
 pub fn init() {
@@ -103,18 +101,10 @@ extern "x86-interrupt" fn timer_interrupt_handler(_stack_frame: InterruptStackFr
 }
 
 extern "x86-interrupt" fn keybaord_handler(_stack_frame: InterruptStackFrame) {
-    let mut keybaord = KEYBOARD.lock();
     let mut port = Port::new(0x60);
     let scan_code: u8 = unsafe { port.read() };
 
-    if let Ok(Some(key_event)) = keybaord.add_byte(scan_code) {
-        if let Some(key) = keybaord.process_keyevent(key_event) {
-            match key {
-                DecodedKey::Unicode(character) => print!("{}", character),
-                DecodedKey::RawKey(key) => print!("{:?}", key),
-            }
-        }
-    }
+    crate::task::keyboard::add_scan_code(scan_code);
 
     unsafe {
         PICS.lock()

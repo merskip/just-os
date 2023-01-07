@@ -13,10 +13,23 @@ pic8259 = "0.10.2"
 pc-keyboard = "0.6.1"
 linked_list_allocator = "0.10.0"
 
-
-[package.metadata.bootimage]
-run-command = ["qemu-system-x86_64", "-drive", "format=raw,file={}", "-gdb", "tcp::1234", "-S"]
-
 [dependencies.lazy_static]
 version = "1.0"
 features = ["spin_no_std"]
+
+[dependencies.crossbeam-queue]
+version = "0.3.8"
+default-features = false
+features = ["alloc"]
+
+[dependencies.conquer-once]
+version = "0.3.2"
+default-features = false
+
+[dependencies.futures-util]
+version = "0.3.25"
+default-features = false
+features = ["alloc"]
+
+[package.metadata.bootimage]
+run-command = ["qemu-system-x86_64", "-drive", "format=raw,file={}", "-gdb", "tcp::1234", "-S"]

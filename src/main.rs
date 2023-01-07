@@ -10,7 +10,7 @@ use core::panic::PanicInfo;
 use x86_64::VirtAddr;
 
 use crate::task::simple_executor::SimpleExecutor;
-use crate::task::Task;
+use crate::task::{Task, keyboard};
 
 mod allocator;
 mod gdt;
@@ -36,6 +36,7 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
 
     let mut executor = SimpleExecutor::new();
     executor.spawn(Task::new(example_task()));
+    executor.spawn(Task::new(keyboard::print_keypresses()));
     executor.run();
 
     interrupts::halt_loop();
