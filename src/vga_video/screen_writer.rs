@@ -1,4 +1,4 @@
-use super::{CharacterColor, ScreenBuffer, ScreenCharacter, SCREEN_WIDTH, SCREEN_HEIGHT};
+use super::{CharacterColor, ScreenBuffer, SCREEN_WIDTH, SCREEN_HEIGHT};
 
 pub struct ScreenWriter {
     row: usize,
@@ -36,11 +36,7 @@ impl ScreenWriter {
                 if self.column >= SCREEN_WIDTH {
                     self.move_to_new_line();
                 }
-                let character = ScreenCharacter {
-                    color_code: self.default_color,
-                    character,
-                };
-                self.screen_buffer.set_character(self.row, self.column, character);
+                self.screen_buffer.put_char(self.row, self.column, character, self.default_color);
                 self.column += 1;
             }
         }

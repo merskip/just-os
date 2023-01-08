@@ -9,18 +9,24 @@ extern crate alloc;
 extern crate bitflags;
 
 use bootloader::{entry_point, BootInfo};
+
 use core::panic::PanicInfo;
 use x86_64::VirtAddr;
 
 use crate::rtc::RTC;
 use crate::task::executor::Executor;
 use crate::task::keyboard;
+use crate::tui::text_screen::TextScreen;
+use crate::vga_video::{CharacterColor, Color};
+use crate::vga_video::screen_buffer::ScreenBuffer;
 
 mod allocator;
 mod gdt;
 mod interrupts;
 mod memory;
 mod vga_video;
+mod stream;
+mod tui;
 mod task;
 mod rtc;
 
@@ -28,6 +34,11 @@ entry_point!(kernel_main);
 
 #[no_mangle]
 fn kernel_main(boot_info: &'static BootInfo) -> ! {
+    let screen_buffer = unsafe { ScreenBuffer::new(0xb8000) };
+    let default_color = CharacterColor::new(Color::Gray, Color::Black);
+    let mut text_screen = TextScreen::new(screen_buffer, default_color);
+    text_screen.display();
+
     println!("Hello {}!", "world");
 
     let physical_memory_offset = VirtAddr::new(boot_info.physical_memory_offset);

@@ -6,7 +6,7 @@ use core::ops::{Deref, DerefMut};
 #[repr(C)]
 pub struct ScreenCharacter {
     pub character: u8,
-    pub color_code: CharacterColor,
+    pub color: CharacterColor,
 }
 
 pub const SCREEN_HEIGHT: usize = 25;
@@ -18,8 +18,22 @@ pub struct ScreenBuffer {
 }
 
 impl ScreenBuffer {
-    pub fn set_character(&mut self, row: usize, column: usize, character: ScreenCharacter) {
-        self.characters[row][column].write(character);
+    pub unsafe fn new(address: u64) -> &'static mut Self {
+        &mut *(address as *mut ScreenBuffer)
+    }
+}
+
+impl ScreenBuffer {
+    pub fn put_string(&mut self, row: usize, column: usize, string: &str, color: CharacterColor) {
+        let mut column = column;
+        for character in string.as_bytes() {
+            self.put_char(row, column, *character, color);
+            column += 1;
+        }
+    }
+
+    pub fn put_char(&mut self, row: usize, column: usize, character: u8, color: CharacterColor) {
+        self.characters[row][column].write(ScreenCharacter { character, color });
     }
 
     pub fn copy_row(&mut self, target_row: usize, destination_row: usize) {
@@ -35,7 +49,8 @@ impl ScreenBuffer {
 
     pub fn clear_row(&mut self, row: usize) {
         const CLEAR_COLOR: CharacterColor = CharacterColor::new(Color::Black, Color::Black);
-        const CLEAR_CHARACTER: ScreenCharacter = ScreenCharacter { character: 0b0, color_code: CLEAR_COLOR };
+        const CLEAR_CHARACTER: ScreenCharacter = ScreenCharacter { character: 0b0, color: CLEAR_COLOR };
+
         self.characters[row].fill(Volatile::new(CLEAR_CHARACTER));
     }
 }

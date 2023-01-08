@@ -19,6 +19,7 @@ pub enum Color {
     White = 0xF,
 }
 
+
 #[derive(Debug, Clone, Copy)]
 #[repr(transparent)]
 pub struct CharacterColor(u8);
@@ -26,5 +27,9 @@ pub struct CharacterColor(u8);
 impl CharacterColor {
     pub const fn new(foreground: Color, background: Color) -> CharacterColor {
         CharacterColor((background as u8) << 4 | (foreground as u8))
+    }
+
+    pub fn with_foreground(self, foreground: Color) -> CharacterColor {
+        CharacterColor(self.0 & 0xF0 | (foreground as u8))
     }
 }
