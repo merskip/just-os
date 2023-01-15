@@ -1,6 +1,12 @@
-use volatile::{Volatile};
+use volatile::Volatile;
+use crate::geometry::{size::Size, position::Position};
+
 use super::{CharacterColor, Color};
 use core::ops::{Deref, DerefMut};
+
+const SCREEN_HEIGHT: usize = 25;
+const SCREEN_WIDTH: usize = 80;
+const SCREEN_SIZE: Size = Size::new(SCREEN_WIDTH, SCREEN_HEIGHT);
 
 #[derive(Debug, Clone, Copy)]
 #[repr(C)]
@@ -8,9 +14,6 @@ pub struct ScreenCharacter {
     pub character: u8,
     pub color: CharacterColor,
 }
-
-pub const SCREEN_HEIGHT: usize = 25;
-pub const SCREEN_WIDTH: usize = 80;
 
 #[repr(transparent)]
 pub struct ScreenBuffer {
@@ -21,19 +24,16 @@ impl ScreenBuffer {
     pub unsafe fn new(address: u64) -> &'static mut Self {
         &mut *(address as *mut ScreenBuffer)
     }
+
+    pub const fn size() -> Size {
+        SCREEN_SIZE
+    }
 }
 
 impl ScreenBuffer {
-    pub fn put_string(&mut self, row: usize, column: usize, string: &str, color: CharacterColor) {
-        let mut column = column;
-        for character in string.as_bytes() {
-            self.put_char(row, column, *character, color);
-            column += 1;
-        }
-    }
-
-    pub fn put_char(&mut self, row: usize, column: usize, character: u8, color: CharacterColor) {
-        self.characters[row][column].write(ScreenCharacter { character, color });
+    pub fn set_character(&mut self, position: Position, character: u8, color: CharacterColor) {
+        let screen_character = ScreenCharacter { character, color };
+        self.characters[position.row][position.column].write(screen_character);
     }
 
     pub fn copy_row(&mut self, target_row: usize, destination_row: usize) {

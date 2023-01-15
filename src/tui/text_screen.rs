@@ -1,25 +1,82 @@
+use alloc::format;
 use alloc::string::String;
-use spin::Mutex;
 
-use crate::{vga_video::{ScreenBuffer, CharacterColor, Color}};
+use crate::geometry::position::Position;
+use crate::log::{LoggerListener, Log};
+use crate::vga_video::screen_writer::ScreenWriter;
+use crate::vga_video::{CharacterColor, Color};
 
-const HEADER_SIZE: usize = 3;
+pub struct Header {
+    name: String,
+    version: String
+}
+
+impl Header {
+    pub fn new(name: String, version: String) -> Self {
+        Header { name, version }
+    }
+}
 
 pub struct TextScreen<'a> {
-    screen_buffer: &'a mut ScreenBuffer,
+    screen_writer: ScreenWriter<'a>,
     default_color: CharacterColor,
+    header: Header,
+    next_log_position: Position,
 }
 
 impl <'a> TextScreen<'a> {
-    pub fn new(screen_buffer: &'a mut ScreenBuffer, default_color: CharacterColor) -> Self {
+    pub fn new(
+        screen_writer: ScreenWriter<'a>,
+        default_color: CharacterColor,
+        header: Header,
+    ) -> Self {
         TextScreen {
-            screen_buffer,
+            screen_writer,
             default_color,
+            header,
+            next_log_position: Position::new(0, 2),
         }
     }
+}
+
+impl LoggerListener for TextScreen<'_> {
+    fn did_log(&mut self, log: &Log) {
+        self.display_log(log);
+    }
+}
+
+impl TextScreen<'_> {
 
     pub fn display(&mut self) {
-        self.screen_buffer.clear_screen();
-        self.screen_buffer.put_string(0, 0, "Just-OS", self.default_color.with_foreground(Color::Cyan));
+        self.screen_writer.clear();
+        self.display_header();
+
+    }
+
+    fn display_header(&mut self) {
+        self.screen_writer.write_string(
+            Position::zero(),
+            format!("{} (v{})", self.header.name, self.header.version).as_str(),
+            self.default_color.with_foreground(Color::Cyan),
+        );
+        self.screen_writer.write_string(
+            Position::new(0, 1),
+            "=== [Logs] === ",
+            self.default_color
+        );
+    }
+
+    fn display_log(&mut self, log: &Log) {
+        let position = self.screen_writer.write_string(
+            self.next_log_position,
+            format!("[{:?}] ", log.level).as_str(),
+            self.default_color.with_foreground(Color::DarkGray)
+        );
+
+        self.next_log_position = self.screen_writer.write_string(
+            position,
+            log.message.as_str(),
+            self.default_color
+        ).next_row();
     }
 }

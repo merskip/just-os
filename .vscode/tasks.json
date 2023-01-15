@@ -9,8 +9,8 @@
             "command": "cargo run",
             "isBackground": true,
             "presentation": {
-                "reveal": "silent",
-                "clear": true
+                "clear": true,
+                "showReuseMessage": false,
             }
         }
     ],

@@ -1,6 +1,6 @@
 [package]
-name = "just-os"
-version = "0.1.0"
+name = "Just-OS"
+version = "0.0.1"
 edition = "2021"
 authors = ["Piotr Merski <merskip@gmail.com>"]
 

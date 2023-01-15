@@ -8,7 +8,7 @@ use crossbeam_queue::ArrayQueue;
 use futures_util::{task::AtomicWaker, Stream, StreamExt};
 use pc_keyboard::{layouts, DecodedKey, HandleControl, Keyboard, ScancodeSet1};
 
-use crate::{print, println};
+use crate::println;
 
 static SCAN_CODE_QUEUE: OnceCell<ArrayQueue<u8>> = OnceCell::uninit();
 static SCAN_CODE_QUEUE_SIZE: usize = 255;
@@ -68,8 +68,8 @@ pub async fn print_keypresses() {
         if let Ok(Some(key_event)) = keyboard.add_byte(scan_code) {
             if let Some(key) = keyboard.process_keyevent(key_event) {
                 match key {
-                    DecodedKey::Unicode(character) => print!("{}", character),
-                    DecodedKey::RawKey(key) => print!("{:?}", key),
+                    DecodedKey::Unicode(character) => println!("KEYBOARD CHAR={}", character),
+                    DecodedKey::RawKey(key) => println!("KEYBOARD KEY={:?}", key),
                 }
             }
         }

@@ -1,57 +1,36 @@
-use super::{CharacterColor, ScreenBuffer, SCREEN_WIDTH, SCREEN_HEIGHT};
+use crate::geometry::position::Position;
+use super::{ScreenBuffer, CharacterColor};
 
-pub struct ScreenWriter {
-    row: usize,
-    column: usize,
-    default_color: CharacterColor,
-    screen_buffer: &'static mut ScreenBuffer,
+pub struct ScreenWriter<'a> {
+    buffer: &'a mut ScreenBuffer,
 }
 
-impl ScreenWriter {
+impl <'a> ScreenWriter<'a> {
+    pub fn new(buffer: &'a mut ScreenBuffer) -> Self {
+        ScreenWriter { buffer }
+    }
+}
 
-    pub fn new(default_color: CharacterColor, buffer_address: usize) -> ScreenWriter {
-        ScreenWriter {
-            row: 0,
-            column: 0,
-            default_color,
-            screen_buffer: unsafe { &mut *(buffer_address as *mut ScreenBuffer) },
-        }
+impl ScreenWriter<'_> {
+    pub fn clear(&mut self) {
+        self.buffer.clear_screen();
     }
 
-    pub fn write_string(&mut self, string: &str) {
-        for byte in string.bytes() {
-            match byte {
-                // printable ASCII byte or newline
-                0x20..=0x7e | b'\n' => self.write_byte(byte),
-                // not part of printable ASCII range
-                _ => self.write_byte(0xfe),
-            }
+    pub fn write_string(&mut self, position: Position, string: &str, color: CharacterColor) -> Position {
+        let mut position = position;
+        for character in string.as_bytes() {
+            position = self.write_char(position, *character, color);
         }
+        position
     }
-    
-    fn write_byte(&mut self, character: u8) {
+
+    pub fn write_char(&mut self, position: Position, character: u8, color: CharacterColor) -> Position {
         match character {
-            b'\n' => self.move_to_new_line(),
+            b'\n' => position.next_row(),
             _ => {
-                if self.column >= SCREEN_WIDTH {
-                    self.move_to_new_line();
-                }
-                self.screen_buffer.put_char(self.row, self.column, character, self.default_color);
-                self.column += 1;
+                self.buffer.set_character(position, character, color);
+                position.next()
             }
-        }
-    }
-
-    fn move_to_new_line(&mut self) {
-        self.row += 1;
-        self.column = 0;
-
-        if self.row >= SCREEN_HEIGHT {
-            for target_row in 0..SCREEN_HEIGHT - 1 {
-                self.screen_buffer.copy_row(target_row, target_row + 1);
-            }
-            self.screen_buffer.clear_row(SCREEN_HEIGHT - 1);
-            self.row = SCREEN_HEIGHT - 1;
         }
     }
 }
