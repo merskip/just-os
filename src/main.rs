@@ -65,7 +65,7 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
 
     KERNEL_LOGGER.lock().register_listener(text_screen);
 
-    log!("Hello {}!", "world");
+    log_info!("Hello {}!", "world");
 
     interrupts::init();
     gdt::init();
@@ -73,7 +73,7 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
 
     let mut rtc = RTC::new();
     let now = rtc.read_datetime();
-    log!("Now: {}", now);
+    log_info!("Now: {}", now);
 
     let mut executor = Executor::new();
     executor.spawn(keyboard::print_keypresses());

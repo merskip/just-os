@@ -1,4 +1,4 @@
-use crate::{gdt, println};
+use crate::{gdt, log, log_error, log_debug};
 use lazy_static::lazy_static;
 use pic8259::ChainedPics;
 use spin::Mutex;
@@ -65,7 +65,7 @@ impl ExternalInterrupt {
 }
 
 extern "x86-interrupt" fn breakpoint_handler(stack_frame: InterruptStackFrame) {
-    println!("EXCEPTION: BREAKPOINT\n{:#?}", stack_frame);
+    log_debug!("EXCEPTION: BREAKPOINT\n{:#?}", stack_frame);
 }
 
 extern "x86-interrupt" fn double_fault_handler(
@@ -81,10 +81,10 @@ extern "x86-interrupt" fn page_fault_handler(
 ) {
     use x86_64::registers::control::Cr2;
 
-    println!("EXCEPTION: PAGE FAULT");
-    println!("Accessed Address: {:?}", Cr2::read());
-    println!("Error Code: {:?}", error_code);
-    println!("{:#?}", stack_frame);
+    log_error!("EXCEPTION: PAGE FAULT");
+    log_error!("Accessed Address: {:?}", Cr2::read());
+    log_error!("Error Code: {:?}", error_code);
+    log_error!("{:#?}", stack_frame);
     
     loop {}
 }

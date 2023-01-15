@@ -45,22 +45,6 @@ impl Logger {
 }
 
 impl Logger {
-    pub fn debug(&mut self, message: &str) {
-        self.log(Level::DEBUG, message);
-    }
-
-    pub fn info(&mut self, message: &str) {
-        self.log(Level::INFO, message);
-    }
-
-    pub fn warning(&mut self, message: &str) {
-        self.log(Level::WARNING, message);
-    }
-
-    pub fn error(&mut self, message: &str) {
-        self.log(Level::ERROR, message);
-    }
-
     fn log(&mut self, level: Level, message: &str) {
         let log = Log {
             level,
@@ -80,15 +64,44 @@ lazy_static! {
         Mutex::new(Logger::new(512));
 }
 
-#[macro_export]
-macro_rules! log {
-    ($( $args:tt )*) => {{
-        use x86_64::instructions::interrupts;
-        use alloc::format;
+#[doc(hidden)]
+pub fn log(level: Level, message: &str) {
+    use x86_64::instructions::interrupts;
+    
+    interrupts::without_interrupts(|| {
+        let mut logger = KERNEL_LOGGER.lock();
+        logger.log(level, message);
+    });
+}
 
-        interrupts::without_interrupts(|| {
-            let mut logger = $crate::log::KERNEL_LOGGER.lock();
-            logger.info(format!($($args)*).as_str());
-        });
+#[macro_export]
+macro_rules! log_debug {
+    ($($args:tt)*) => {{
+        use alloc::format;
+        $crate::log::log($crate::log::Level::DEBUG, format!($($args)*).as_str());
+    }};
+}
+
+#[macro_export]
+macro_rules! log_info {
+    ($($args:tt)*) => {{
+        use alloc::format;
+        $crate::log::log($crate::log::Level::INFO, format!($($args)*).as_str());
+    }};
+}
+
+#[macro_export]
+macro_rules! log_warning {
+    ($($args:tt)*) => {{
+        use alloc::format;
+        $crate::log::log($crate::log::Level::WARNING, format!($($args)*).as_str());
+    }};
+}
+
+#[macro_export]
+macro_rules! log_error {
+    ($($args:tt)*) => {{
+        use alloc::format;
+        $crate::log::log($crate::log::Level::ERROR, format!($($args)*).as_str());
     }};
 }

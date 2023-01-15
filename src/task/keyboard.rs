@@ -8,7 +8,7 @@ use crossbeam_queue::ArrayQueue;
 use futures_util::{task::AtomicWaker, Stream, StreamExt};
 use pc_keyboard::{layouts, DecodedKey, HandleControl, Keyboard, ScancodeSet1};
 
-use crate::println;
+use crate::{log_warning, log_info};
 
 static SCAN_CODE_QUEUE: OnceCell<ArrayQueue<u8>> = OnceCell::uninit();
 static SCAN_CODE_QUEUE_SIZE: usize = 255;
@@ -17,12 +17,12 @@ static WAKER: AtomicWaker = AtomicWaker::new();
 pub(crate) fn add_scan_code(scan_code: u8) {
     if let Ok(queue) = SCAN_CODE_QUEUE.try_get() {
         if let Err(_) = queue.push(scan_code) {
-            println!("WARNING: Scan code queue full, dropping keybaord input")
+            log_warning!("Scan code queue full, dropping keybaord input")
         } else {
             WAKER.wake();
         }
     } else {
-        println!("WARNING: scan code queue uninitialized");
+        log_warning!("Scan code queue uninitialized");
     }
 }
 
@@ -68,8 +68,8 @@ pub async fn print_keypresses() {
         if let Ok(Some(key_event)) = keyboard.add_byte(scan_code) {
             if let Some(key) = keyboard.process_keyevent(key_event) {
                 match key {
-                    DecodedKey::Unicode(character) => println!("KEYBOARD CHAR={}", character),
-                    DecodedKey::RawKey(key) => println!("KEYBOARD KEY={:?}", key),
+                    DecodedKey::Unicode(character) => log_info!("KEYBOARD CHAR={}", character),
+                    DecodedKey::RawKey(key) => log_info!("KEYBOARD KEY={:?}", key),
                 }
             }
         }
