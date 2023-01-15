@@ -12,6 +12,7 @@ use alloc::boxed::Box;
 use alloc::format;
 use alloc::string::ToString;
 use bootloader::{entry_point, BootInfo};
+use tui::panic_screen::{self, PanicScreen};
 
 use core::panic::PanicInfo;
 use x86_64::VirtAddr;
@@ -86,8 +87,9 @@ fn alloc_error_handler(layout: alloc::alloc::Layout) -> ! {
 
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
-    println!("[PANIC!]");
-    println!("{}", info);
+    let screen_buffer = unsafe { ScreenBuffer::new(0xb8000) };
+    let mut panic_screen = PanicScreen::new(screen_buffer);
+    panic_screen.display(info);
 
     interrupts::disable();
     interrupts::halt_loop();

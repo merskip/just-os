@@ -37,7 +37,7 @@ impl ScreenWriter<'_> {
             b'\n' => position.next_row(),
             _ => {
                 let position = self.scroll_if_needed(position);
-                self.buffer.set_character(position, character, color);
+                self.buffer.put_char(position, character, color);
                 position.next()
             }
         }

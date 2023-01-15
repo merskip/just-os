@@ -31,7 +31,26 @@ impl ScreenBuffer {
 }
 
 impl ScreenBuffer {
-    pub fn set_character(&mut self, position: Position, character: u8, color: CharacterColor) {
+    pub fn put_string(&mut self, position: Position, string: &str, color: CharacterColor) {
+        let mut position = position;
+        for character in string.as_bytes() {
+            match character {
+                b'\n' => position = position.next_row(),
+                _ =>  {
+                    if position.column >= SCREEN_WIDTH {
+                        position = position.next_row();
+                    }
+                    if position.row >= SCREEN_HEIGHT {
+                        return;
+                    }
+                    self.put_char(position, *character, color);
+                    position = position.next();
+                }
+            }
+        }
+    }
+
+    pub fn put_char(&mut self, position: Position, character: u8, color: CharacterColor) {
         let screen_character = ScreenCharacter { character, color };
         self.characters[position.row][position.column].write(screen_character);
     }
