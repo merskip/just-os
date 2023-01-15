@@ -1,8 +1,11 @@
 [package]
-name = "Just-OS"
+name = "just_os"
 version = "0.0.1"
 edition = "2021"
+description = "Just Operating System"
 authors = ["Piotr Merski <merskip@gmail.com>"]
+readme = "README.md"
+repository = "https://github.com/merskip/just-os"
 
 [dependencies]
 bootloader = { version = "0.9.23", features = ["map_physical_memory"] }

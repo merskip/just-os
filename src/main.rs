@@ -19,7 +19,7 @@ use x86_64::VirtAddr;
 use crate::log::KERNEL_LOGGER;
 use crate::rtc::RTC;
 use crate::task::executor::Executor;
-use crate::task::{keyboard, Task};
+use crate::task::keyboard;
 use crate::tui::text_screen::{TextScreen, Header};
 use crate::vga_video::screen_writer::ScreenWriter;
 use crate::vga_video::{CharacterColor, Color};
