@@ -64,6 +64,8 @@ impl TextScreen<'_> {
             "=== [Logs] === ",
             self.default_color
         );
+
+        self.screen_writer.set_frozen_rows(2);
     }
 
     fn display_log(&mut self, log: &Log) {
@@ -73,10 +75,12 @@ impl TextScreen<'_> {
             self.default_color.with_foreground(Color::DarkGray)
         );
 
-        self.next_log_position = self.screen_writer.write_string(
+        let position = self.screen_writer.write_string(
             position,
             log.message.as_str(),
             self.default_color
-        ).next_row();
+        );
+
+        self.next_log_position = position.next_row();
     }
 }

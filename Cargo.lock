@@ -91,7 +91,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "just_os"
+name = "just-os"
 version = "0.0.1"
 dependencies = [
  "bitflags",

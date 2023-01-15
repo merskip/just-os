@@ -1,5 +1,5 @@
 [package]
-name = "just_os"
+name = "just-os"
 version = "0.0.1"
 edition = "2021"
 description = "Just Operating System"
