@@ -2,7 +2,6 @@
 #![no_main]
 #![feature(abi_x86_interrupt)]
 #![feature(alloc_error_handler)]
-
 #![feature(custom_test_frameworks)]
 #![test_runner(crate::test_runner)]
 #![reexport_test_harness_main = "test_main"]
@@ -16,7 +15,7 @@ use alloc::boxed::Box;
 use alloc::format;
 use alloc::string::ToString;
 use bootloader::{entry_point, BootInfo};
-use tui::panic_screen::{PanicScreen};
+use tui::panic_screen::PanicScreen;
 
 use core::panic::PanicInfo;
 use x86_64::VirtAddr;
@@ -25,21 +24,21 @@ use crate::log::KERNEL_LOGGER;
 use crate::rtc::RTC;
 use crate::task::executor::Executor;
 use crate::task::keyboard;
-use crate::tui::text_screen::{TextScreen, Header};
+use crate::tui::text_screen::{Header, TextScreen};
+use crate::vga_video::screen_buffer::ScreenBuffer;
 use crate::vga_video::screen_writer::ScreenWriter;
 use crate::vga_video::{CharacterColor, Color};
-use crate::vga_video::screen_buffer::ScreenBuffer;
 
-mod log;
 mod allocator;
 mod gdt;
 mod interrupts;
+mod log;
 mod memory;
-mod vga_video;
-mod stream;
-mod tui;
-mod task;
 mod rtc;
+mod stream;
+mod task;
+mod tui;
+mod vga_video;
 mod geometry {
     pub mod position;
     pub mod size;
@@ -108,15 +107,27 @@ fn panic(info: &PanicInfo) -> ! {
 }
 
 #[cfg(test)]
-fn test_runner(tests: &[&dyn Fn()]) {
+fn test_runner(tests: &[&dyn Testable]) {
     use crate::qemu_exit::*;
 
-    serial_println!("Running tests...");
+    serial_println!("Running {} tests...", tests.len());
     for test in tests {
-        test();
+        test.run();
     }
 
     qemu_exit(ExitCode::Success);
+}
+
+pub trait Testable {
+    fn run(&self) -> ();
+}
+
+impl<T> Testable for T where T: Fn() {
+    fn run(&self) -> () {
+        serial_print!("{}...\t", core::any::type_name::<T>());
+        self();
+        serial_println!("[ok]");
+    }
 }
 
 #[panic_handler]
@@ -131,8 +142,5 @@ fn panic(info: &PanicInfo) -> ! {
 
 #[test_case]
 fn trivial_assertion() {
-    serial_print!("trivial assertion... ");
     assert_eq!(1, 1);
-    serial_println!("[ok]");
-    panic!("Testr")
 }
