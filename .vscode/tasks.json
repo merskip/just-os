@@ -4,14 +4,50 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Build & run QEMU",
+            "label": "Build kernel",
             "type": "shell",
-            "command": "cargo run",
+            "command": "cargo build",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "Run QEMU",
+            "type": "shell",
             "isBackground": true,
+            "command": "qemu-system-x86_64",
+            "args": [
+                "-drive",
+                "format=raw,file=${workspaceFolder}/target/x86_64-just_os/debug/bootimage-just-os.bin",
+                "-gdb",
+                "tcp::1234",
+                "-S"
+            ],
             "presentation": {
                 "clear": true,
-                "showReuseMessage": false,
+                "showReuseMessage": false
+            },
+            "problemMatcher": {
+                "pattern": {
+                    "regexp": "^(Starting QEMU)",
+                    "line": 1
+                },
+                "background": {
+                    "activeOnStart": true,
+                    "beginsPattern": "^(Starting QEMU)",
+                    "endsPattern": "^(Starting QEMU)"
+                }
             }
+        },
+        {
+            "label": "Build & run QEMU",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "Build kernel",
+                "Run QEMU"
+            ],
+            "problemMatcher": []
         }
     ],
 }

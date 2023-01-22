@@ -1,4 +1,4 @@
-use crate::{gdt, log, log_error, log_debug};
+use crate::{gdt, log_error, log_debug};
 use lazy_static::lazy_static;
 use pic8259::ChainedPics;
 use spin::Mutex;

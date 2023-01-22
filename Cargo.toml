@@ -34,6 +34,3 @@ default-features = false
 version = "0.3.25"
 default-features = false
 features = ["alloc"]
-
-[package.metadata.bootimage]
-run-command = ["qemu-system-x86_64", "-drive", "format=raw,file={}", "-gdb", "tcp::1234", "-S"]

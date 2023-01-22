@@ -12,7 +12,7 @@ use alloc::boxed::Box;
 use alloc::format;
 use alloc::string::ToString;
 use bootloader::{entry_point, BootInfo};
-use tui::panic_screen::{self, PanicScreen};
+use tui::panic_screen::{PanicScreen};
 
 use core::panic::PanicInfo;
 use x86_64::VirtAddr;
