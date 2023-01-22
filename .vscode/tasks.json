@@ -50,6 +50,19 @@
                 "Run QEMU"
             ],
             "problemMatcher": []
-        }
+        },
+        {
+            "label": "Run tests",
+            "type": "cargo",
+            "command": "test",
+            "problemMatcher": [
+                "$rustc"
+            ],
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            
+        },
     ],
 }

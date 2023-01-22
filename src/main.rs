@@ -3,6 +3,10 @@
 #![feature(abi_x86_interrupt)]
 #![feature(alloc_error_handler)]
 
+#![feature(custom_test_frameworks)]
+#![test_runner(crate::test_runner)]
+#![reexport_test_harness_main = "test_main"]
+
 extern crate alloc;
 
 #[macro_use]
@@ -75,6 +79,9 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
     let now = rtc.read_datetime();
     log_info!("Now: {}", now);
 
+    #[cfg(test)]
+    test_main();
+
     let mut executor = Executor::new();
     executor.spawn(keyboard::print_keypresses());
     executor.run();
@@ -93,4 +100,19 @@ fn panic(info: &PanicInfo) -> ! {
 
     interrupts::disable();
     interrupts::halt_loop();
+}
+
+#[cfg(test)]
+fn test_runner(tests: &[&dyn Fn()]) {
+    log_info!("Running tests...");
+    for test in tests {
+        test();
+    }
+}
+
+#[test_case]
+fn trivial_assertion() {
+    log_info!("trivial assertion... ");
+    assert_eq!(1, 1);
+    log_info!("[ok]");
 }
