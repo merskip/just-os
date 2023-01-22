@@ -44,6 +44,8 @@ mod geometry {
     pub mod position;
     pub mod size;
 }
+#[cfg(test)]
+mod qemu_exit;
 
 const PKG_NAME: &str = env!("CARGO_PKG_NAME");
 const PKG_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -104,10 +106,16 @@ fn panic(info: &PanicInfo) -> ! {
 
 #[cfg(test)]
 fn test_runner(tests: &[&dyn Fn()]) {
+    use crate::qemu_exit::*;
+
     log_info!("Running tests...");
     for test in tests {
         test();
     }
+
+    qemu_exit(ExitCode::Success);
+    panic!("QEMU not exited!");
+
 }
 
 #[test_case]
