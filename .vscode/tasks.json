@@ -62,7 +62,9 @@
                 "kind": "test",
                 "isDefault": true
             },
-            
+            "presentation": {
+                "clear": true,
+            },
         },
     ],
 }

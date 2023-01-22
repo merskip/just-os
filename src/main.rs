@@ -44,6 +44,8 @@ mod geometry {
     pub mod position;
     pub mod size;
 }
+mod serial;
+
 #[cfg(test)]
 mod qemu_exit;
 
@@ -95,6 +97,7 @@ fn alloc_error_handler(layout: alloc::alloc::Layout) -> ! {
 }
 
 #[panic_handler]
+#[cfg(not(test))]
 fn panic(info: &PanicInfo) -> ! {
     let screen_buffer = unsafe { ScreenBuffer::new(0xb8000) };
     let mut panic_screen = PanicScreen::new(screen_buffer);
@@ -108,19 +111,28 @@ fn panic(info: &PanicInfo) -> ! {
 fn test_runner(tests: &[&dyn Fn()]) {
     use crate::qemu_exit::*;
 
-    log_info!("Running tests...");
+    serial_println!("Running tests...");
     for test in tests {
         test();
     }
 
     qemu_exit(ExitCode::Success);
-    panic!("QEMU not exited!");
+}
 
+#[panic_handler]
+#[cfg(test)]
+fn panic(info: &PanicInfo) -> ! {
+    use crate::qemu_exit::*;
+
+    serial_println!("[PANIC]");
+    serial_println!("{:#?}", info);
+    qemu_exit(ExitCode::Failed)
 }
 
 #[test_case]
 fn trivial_assertion() {
-    log_info!("trivial assertion... ");
+    serial_print!("trivial assertion... ");
     assert_eq!(1, 1);
-    log_info!("[ok]");
+    serial_println!("[ok]");
+    panic!("Testr")
 }
