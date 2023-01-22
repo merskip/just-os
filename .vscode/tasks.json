@@ -22,7 +22,9 @@
                 "format=raw,file=${workspaceFolder}/target/x86_64-just_os/debug/bootimage-just-os.bin",
                 "-gdb",
                 "tcp::1234",
-                "-S"
+                "-S",
+                "-display",
+                "gtk,show-tabs=on"
             ],
             "presentation": {
                 "clear": true,
