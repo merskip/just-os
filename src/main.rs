@@ -39,10 +39,12 @@ mod stream;
 mod task;
 mod tui;
 mod vga_video;
+
 mod geometry {
     pub mod position;
     pub mod size;
 }
+
 mod serial;
 
 #[cfg(test)]
@@ -55,11 +57,18 @@ entry_point!(kernel_main);
 
 #[no_mangle]
 fn kernel_main(boot_info: &'static BootInfo) -> ! {
-    let mut mapper = unsafe { memory::init(VirtAddr::new(boot_info.physical_memory_offset)) };
-    let mut frame_allocator = unsafe { memory::BootInfoFrameAllocator::new(&boot_info.memory_map) };
-    allocator::init(&mut mapper, &mut frame_allocator).expect("heap initialization failed");
+    let mut mapper = unsafe {
+        memory::init(VirtAddr::new(boot_info.physical_memory_offset))
+    };
+    let mut frame_allocator = unsafe {
+        memory::BootInfoFrameAllocator::new(&boot_info.memory_map)
+    };
+    allocator::init(&mut mapper, &mut frame_allocator)
+        .expect("heap allocator initialization failed");
 
-    let screen_buffer = unsafe { ScreenBuffer::new(0xb8000) };
+    let screen_buffer = unsafe {
+        ScreenBuffer::new(0xb8000)
+    };
     let screen_writer = ScreenWriter::new(screen_buffer);
     let default_color = CharacterColor::new(Color::Gray, Color::Black);
 

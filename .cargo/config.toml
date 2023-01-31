@@ -7,3 +7,6 @@ target = "x86_64-just_os.json"
 
 [target.'cfg(target_os = "none")']
 runner = "bootimage runner"
+
+[alias]
+run-tests = "test"
