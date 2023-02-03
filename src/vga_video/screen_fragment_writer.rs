@@ -22,50 +22,46 @@ impl<'a> ScreenFragmentWriter<'a> {
 
 impl Write for ScreenFragmentWriter<'_> {
     fn write_str(&mut self, string: &str) -> core::fmt::Result {
-        let mut position = self.next_position;
         for char in string.chars() {
-            if self.needs_scroll(position) {
-                position = self.scroll_up(position).unwrap();
+            if self.needs_scroll() {
+                self.scroll_up().unwrap();
             }
 
             match char {
                 '\n' => {
-                    position = self.next_line(position);
+                    self.move_to_next_line();
                 }
                 _ => {
-                    self.frame_buffer.set_char(position, char, self.default_color)
+                    self.frame_buffer.set_char(self.next_position, char, self.default_color)
                         .unwrap();
-                    position = self.next_position(position);
+                    self.move_to_next_position();
                 }
             }
         }
-        self.next_position = position;
         Ok(())
     }
 }
 
 impl<'a> ScreenFragmentWriter<'a> {
-    fn next_position(&self, mut position: Point) -> Point {
-        position.x += 1;
+    fn move_to_next_position(&mut self) {
+        self.next_position.x += 1;
 
         // Check if needed move to next line
-        if !self.rect.contains(position) {
-            position = self.next_line(position);
+        if !self.rect.contains(self.next_position) {
+            self.move_to_next_line();
         }
-        position
     }
 
-    fn next_line(&self, mut position: Point) -> Point {
-        position.x = self.rect.min_x();
-        position.y += 1;
-        position
+    fn move_to_next_line(&mut self) {
+        self.next_position.x = self.rect.min_x();
+        self.next_position.y += 1;
     }
 
-    fn needs_scroll(&self, position: Point) -> bool {
-        position.y > self.rect.max_y()
+    fn needs_scroll(&self) -> bool {
+        self.next_position.y > self.rect.max_y()
     }
 
-    fn scroll_up(&mut self, mut position: Point) -> Result<Point, Box<dyn Error>> {
+    fn scroll_up(&mut self) -> Result<(), Box<dyn Error>> {
         let rows = self.rect.min_y()..=self.rect.max_y();
         let columns = self.rect.min_x()..=self.rect.max_x();
 
@@ -88,8 +84,8 @@ impl<'a> ScreenFragmentWriter<'a> {
                 CharacterColor::default(),
             )?;
         }
-        position.y -= 1;
-        Ok(position)
+        self.next_position.y -= 1;
+        Ok(())
     }
 }
 
