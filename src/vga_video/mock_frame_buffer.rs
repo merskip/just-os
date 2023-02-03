@@ -6,6 +6,7 @@ use core::fmt::{Display, Formatter};
 use crate::error::Error;
 use crate::geometry::position::Point;
 use crate::geometry::size::Size;
+use crate::serial_println;
 use crate::vga_video::CharacterColor;
 use crate::vga_video::frame_buffer::FrameBuffer;
 
@@ -22,7 +23,15 @@ impl MockFrameBuffer {
         }
     }
 
-    pub fn get_character(&self, x: usize, y: usize) -> char {
+    pub fn get_chars(&self, x: usize, y: usize, length: usize) -> Vec<char> {
+        let index = self.get_index(Point::new(x, y));
+        let range = index..(index + length);
+        self.characters[range]
+            .iter()
+            .map(|c| c.0).collect()
+    }
+
+    pub fn get_char(&self, x: usize, y: usize) -> char {
         let index = self.get_index(Point::new(x, y));
         self.characters[index].0
     }

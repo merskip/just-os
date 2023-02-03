@@ -1,3 +1,4 @@
+use core::fmt::{Display, Formatter};
 use crate::geometry::position::Point;
 use crate::geometry::size::Size;
 
@@ -20,13 +21,19 @@ impl Rect {
     }
 }
 
+impl Display for Rect {
+    fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
+        write!(f, "Rect(origin={}, size={})", self.origin, self.size)
+    }
+}
+
 impl Rect {
     pub fn min_x(&self) -> usize {
         self.origin.x
     }
 
     pub fn max_x(&self) -> usize {
-        self.origin.x + self.size.width
+        self.origin.x + self.size.width - 1
     }
 
     pub fn min_y(&self) -> usize {
@@ -34,7 +41,7 @@ impl Rect {
     }
 
     pub fn max_y(&self) -> usize {
-        self.origin.y + self.size.height
+        self.origin.y + self.size.height - 1
     }
 
     pub fn contains(&self, point: Point) -> bool {
@@ -63,33 +70,38 @@ impl Rect {
 
 #[test_case]
 fn test_rect_min_and_max() {
-    let rect = Rect::from(50, 100, 150, 200);
+    let rect = Rect::from(2, 2, 3, 3);
 
-    assert_eq!(rect.min_x(), 50);
-    assert_eq!(rect.max_x(), 200);
-    assert_eq!(rect.min_y(), 100);
-    assert_eq!(rect.max_y(), 300);
+    assert_eq!(rect.min_x(), 2);
+    assert_eq!(rect.min_y(), 2);
+    assert_eq!(rect.max_x(), 4);
+    assert_eq!(rect.max_y(), 4);
 }
 
 #[test_case]
 fn test_rect_contains() {
-    let rect = Rect::from(50, 100, 150, 200);
+    let rect = Rect::from(2, 2, 3, 3);
 
-    assert!(rect.contains(Point::new(50, 100)));
-    assert!(rect.contains(Point::new(200, 100)));
-    assert!(rect.contains(Point::new(50, 300)));
-    assert!(rect.contains(Point::new(200, 300)));
+    assert!(rect.contains(Point::new(2, 2)));
+    assert!(rect.contains(Point::new(4, 2)));
+    assert!(rect.contains(Point::new(2, 4)));
+    assert!(rect.contains(Point::new(4 ,4)));
 
-    assert!(!rect.contains(Point::new(0, 0)));
-    assert!(!rect.contains(Point::new(300, 300)));
+    assert!(!rect.contains(Point::new(1, 1)));
+    assert!(!rect.contains(Point::new(2, 1)));
+    assert!(!rect.contains(Point::new(1, 2)));
+
+    assert!(!rect.contains(Point::new(5, 4)));
+    assert!(!rect.contains(Point::new(5, 5)));
+    assert!(!rect.contains(Point::new(4, 5)));
 }
 
 #[test_case]
 fn test_rect_corner() {
-    let rect = Rect::from(50, 100, 150, 200);
+    let rect = Rect::from(2, 2, 3, 3);
 
-    assert_eq!(rect.corner_upper_left(), Point::new(50, 100));
-    assert_eq!(rect.corner_upper_right(), Point::new(200, 100));
-    assert_eq!(rect.corner_lower_left(), Point::new(50, 300));
-    assert_eq!(rect.corner_lower_right(), Point::new(200, 300));
+    assert_eq!(rect.corner_upper_left(), Point::new(2, 2));
+    assert_eq!(rect.corner_upper_right(), Point::new(4, 2));
+    assert_eq!(rect.corner_lower_left(), Point::new(2, 4));
+    assert_eq!(rect.corner_lower_right(), Point::new(4, 4));
 }

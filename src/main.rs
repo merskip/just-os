@@ -126,7 +126,7 @@ impl<T> Testable for T where T: Fn() {
     fn run(&self) -> () {
         serial_print!("{}...\t", core::any::type_name::<T>());
         self();
-        serial_println!("[ok]");
+        serial_println!("\x1b[32m[OK]\x1b[0m");
     }
 }
 

@@ -1,6 +1,8 @@
+use alloc::vec;
 use core::fmt::Write;
 use crate::geometry::position::Point;
 use crate::geometry::rect::Rect;
+use crate::serial_println;
 use crate::vga_video::{CharacterColor};
 use crate::vga_video::frame_buffer::FrameBuffer;
 
@@ -8,7 +10,7 @@ struct ScreenFragmentWriter<'a> {
     rect: Rect,
     default_color: CharacterColor,
     frame_buffer: &'a mut dyn FrameBuffer,
-    next_position: Point
+    next_position: Point,
 }
 
 impl<'a> ScreenFragmentWriter<'a> {
@@ -21,14 +23,13 @@ impl Write for ScreenFragmentWriter<'_> {
     fn write_str(&mut self, string: &str) -> core::fmt::Result {
         let mut position = self.next_position;
         for char in string.chars() {
-
             self.frame_buffer.set_char(position, char, self.default_color)
-                .expect("TODO: panic message");
+                .unwrap();
 
             position.x += 1;
             if !self.rect.contains(position) {
                 position.x = self.rect.min_x();
-                position.y += 1
+                position.y += 1;
             }
 
             if !self.rect.contains(position) {
@@ -44,14 +45,34 @@ impl Write for ScreenFragmentWriter<'_> {
 fn test_write_short_text() {
     use crate::vga_video::mock_frame_buffer::MockFrameBuffer;
 
-    let mut frame_buffer= MockFrameBuffer::new(80, 25);
+    let mut frame_buffer = MockFrameBuffer::new(80, 25);
     let mut writer = new_screen_fragment_writer(&mut frame_buffer);
 
     writer.write_str("Abc").unwrap();
 
-    assert_eq!(frame_buffer.get_character(1, 1), 'A');
-    assert_eq!(frame_buffer.get_character(2, 1), 'b');
-    assert_eq!(frame_buffer.get_character(3, 1), 'c');
+    assert_eq!(frame_buffer.get_chars(0, 0, 5), vec!['\0'; 5]);
+    assert_eq!(frame_buffer.get_chars(0, 1, 5),
+               ['\0', 'A', 'b', 'c', '\0']);
+    assert_eq!(frame_buffer.get_chars(0, 2, 5), vec!['\0'; 5]);
+}
+
+#[test_case]
+fn test_write_multiline_text() {
+    use crate::vga_video::mock_frame_buffer::MockFrameBuffer;
+
+    let mut frame_buffer = MockFrameBuffer::new(80, 25);
+    let mut writer = new_screen_fragment_writer(&mut frame_buffer);
+
+    writer.write_str("Lorem ipsu\
+                             m dolor si\
+                             t amet").unwrap();
+
+    assert_eq!(frame_buffer.get_chars(0, 1, 12),
+               ['\0', 'L', 'o', 'r', 'e', 'm', ' ', 'i', 'p', 's', 'u', '\0']);
+    assert_eq!(frame_buffer.get_chars(0, 2, 12),
+               ['\0', 'm', ' ', 'd', 'o', 'l', 'o', 'r', ' ', 's', 'i', '\0']);
+    assert_eq!(frame_buffer.get_chars(0, 3, 12),
+               ['\0', 't', ' ', 'a', 'm', 'e', 't', '\0', '\0', '\0', '\0', '\0']);
 }
 
 #[cfg(test)]
