@@ -33,3 +33,9 @@ impl CharacterColor {
         CharacterColor(self.0 & 0xF0 | (foreground as u8))
     }
 }
+
+impl Default for CharacterColor {
+    fn default() -> Self {
+        CharacterColor(0)
+    }
+}

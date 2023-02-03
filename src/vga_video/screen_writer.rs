@@ -1,5 +1,6 @@
 use crate::geometry::position::Position;
-use super::{ScreenBuffer, CharacterColor};
+
+use super::{CharacterColor, ScreenBuffer};
 
 pub struct ScreenWriter<'a> {
     frozen_rows: usize,

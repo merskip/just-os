@@ -5,10 +5,10 @@ use core::{
 
 use conquer_once::spin::OnceCell;
 use crossbeam_queue::ArrayQueue;
-use futures_util::{task::AtomicWaker, Stream, StreamExt};
-use pc_keyboard::{layouts, DecodedKey, HandleControl, Keyboard, ScancodeSet1};
+use futures_util::{Stream, StreamExt, task::AtomicWaker};
+use pc_keyboard::{DecodedKey, HandleControl, Keyboard, layouts, ScancodeSet1};
 
-use crate::{log_warning, log_info};
+use crate::{log_info, log_warning};
 
 static SCAN_CODE_QUEUE: OnceCell<ArrayQueue<u8>> = OnceCell::uninit();
 static SCAN_CODE_QUEUE_SIZE: usize = 255;

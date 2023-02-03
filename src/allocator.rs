@@ -1,6 +1,7 @@
+use linked_list_allocator::LockedHeap;
 use x86_64::{
     structures::paging::{
-        mapper::MapToError, FrameAllocator, Mapper, Page, PageTableFlags, Size4KiB,
+        FrameAllocator, Mapper, mapper::MapToError, Page, PageTableFlags, Size4KiB,
     },
     VirtAddr,
 };
@@ -34,8 +35,6 @@ pub fn init(
 
     Ok(())
 }
-
-use linked_list_allocator::LockedHeap;
 
 #[global_allocator]
 static ALLOCATOR: LockedHeap = LockedHeap::empty();

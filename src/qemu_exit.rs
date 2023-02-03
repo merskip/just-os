@@ -1,6 +1,5 @@
 use crate::interrupts::halt_loop;
 
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u32)]
 pub enum ExitCode {

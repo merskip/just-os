@@ -1,10 +1,10 @@
+use alloc::{collections::BTreeMap, sync::Arc, task::Wake};
 use core::task::{
     Context,
     Poll::{Pending, Ready},
     Waker,
 };
 
-use alloc::{collections::BTreeMap, sync::Arc, task::Wake};
 use crossbeam_queue::ArrayQueue;
 use futures_util::Future;
 

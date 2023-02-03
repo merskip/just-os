@@ -1,8 +1,10 @@
+use core::ops::{Deref, DerefMut};
+
 use volatile::Volatile;
-use crate::geometry::{size::Size, position::Position};
+
+use crate::geometry::{position::Position, size::Size};
 
 use super::{CharacterColor, Color};
-use core::ops::{Deref, DerefMut};
 
 const SCREEN_HEIGHT: usize = 25;
 const SCREEN_WIDTH: usize = 80;

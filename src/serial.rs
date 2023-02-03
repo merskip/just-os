@@ -1,4 +1,5 @@
 use alloc::fmt;
+
 use lazy_static::lazy_static;
 use spin::mutex::Mutex;
 use uart_16550::SerialPort;

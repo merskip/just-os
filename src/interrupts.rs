@@ -1,4 +1,3 @@
-use crate::{gdt, log_error, log_debug};
 use lazy_static::lazy_static;
 use pic8259::ChainedPics;
 use spin::Mutex;
@@ -6,6 +5,8 @@ use x86_64::{
     instructions::{self, port::Port},
     structures::idt::{InterruptDescriptorTable, InterruptStackFrame, PageFaultErrorCode},
 };
+
+use crate::{gdt, log_debug, log_error};
 
 const PIC_1_OFFSET: u8 = 32;
 const PIC_2_OFFSET: u8 = PIC_1_OFFSET + 8;

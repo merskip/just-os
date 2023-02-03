@@ -3,31 +3,30 @@
 #![feature(abi_x86_interrupt)]
 #![feature(alloc_error_handler)]
 #![feature(custom_test_frameworks)]
+#![feature(associated_type_defaults)]
 #![test_runner(crate::test_runner)]
 #![reexport_test_harness_main = "test_main"]
 
 extern crate alloc;
-
 #[macro_use]
 extern crate bitflags;
 
 use alloc::boxed::Box;
 use alloc::format;
 use alloc::string::ToString;
-use bootloader::{entry_point, BootInfo};
-use tui::panic_screen::PanicScreen;
-
 use core::panic::PanicInfo;
+
+use bootloader::{BootInfo, entry_point};
 use x86_64::VirtAddr;
 
 use crate::log::KERNEL_LOGGER;
 use crate::rtc::RTC;
 use crate::task::executor::Executor;
 use crate::task::keyboard;
+use crate::tui::panic_screen::PanicScreen;
 use crate::tui::text_screen::{Header, TextScreen};
-use crate::vga_video::screen_buffer::ScreenBuffer;
+use crate::vga_video::{CharacterColor, Color, ScreenBuffer, vga_screen_buffer};
 use crate::vga_video::screen_writer::ScreenWriter;
-use crate::vga_video::{CharacterColor, Color};
 
 mod allocator;
 mod gdt;
@@ -39,13 +38,9 @@ mod stream;
 mod task;
 mod tui;
 mod vga_video;
-
-mod geometry {
-    pub mod position;
-    pub mod size;
-}
-
+mod geometry;
 mod serial;
+mod error;
 
 #[cfg(test)]
 mod qemu_exit;
@@ -66,10 +61,7 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
     allocator::init(&mut mapper, &mut frame_allocator)
         .expect("heap allocator initialization failed");
 
-    let screen_buffer = unsafe {
-        ScreenBuffer::new(0xb8000)
-    };
-    let screen_writer = ScreenWriter::new(screen_buffer);
+    let screen_writer = ScreenWriter::new(vga_screen_buffer());
     let default_color = CharacterColor::new(Color::Gray, Color::Black);
 
     let mut text_screen = Box::new(TextScreen::new(
@@ -107,8 +99,7 @@ fn alloc_error_handler(layout: alloc::alloc::Layout) -> ! {
 #[panic_handler]
 #[cfg(not(test))]
 fn panic(info: &PanicInfo) -> ! {
-    let screen_buffer = unsafe { ScreenBuffer::new(0xb8000) };
-    let mut panic_screen = PanicScreen::new(screen_buffer);
+    let mut panic_screen = PanicScreen::new(vga_screen_buffer());
     panic_screen.display(info);
 
     interrupts::disable();

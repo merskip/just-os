@@ -2,9 +2,9 @@ use alloc::format;
 use alloc::string::String;
 
 use crate::geometry::position::Position;
-use crate::log::{LoggerListener, Log};
-use crate::vga_video::screen_writer::ScreenWriter;
+use crate::log::{Log, LoggerListener};
 use crate::vga_video::{CharacterColor, Color};
+use crate::vga_video::screen_writer::ScreenWriter;
 
 pub struct Header {
     name: String,

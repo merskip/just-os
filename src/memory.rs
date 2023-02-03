@@ -1,5 +1,5 @@
 use bootloader::bootinfo::{MemoryMap, MemoryRegionType};
-use x86_64::{structures::paging::{PhysFrame, FrameAllocator, Size4KiB, OffsetPageTable, PageTable}, PhysAddr, VirtAddr};
+use x86_64::{PhysAddr, structures::paging::{FrameAllocator, OffsetPageTable, PageTable, PhysFrame, Size4KiB}, VirtAddr};
 
 pub unsafe fn init(physical_memory_offset: VirtAddr) -> OffsetPageTable<'static> {
     let level_4_table = active_level_4_table(physical_memory_offset);
