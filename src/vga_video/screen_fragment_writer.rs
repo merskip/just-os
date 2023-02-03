@@ -1,4 +1,3 @@
-use alloc::vec::Vec;
 use core::fmt::Write;
 use crate::geometry::position::Point;
 use crate::geometry::rect::Rect;
@@ -16,23 +15,49 @@ impl<'a> ScreenFragmentWriter<'a> {
     pub fn new(rect: Rect, default_color: CharacterColor, frame_buffer: &'a mut dyn FrameBuffer) -> Self {
         Self { rect, default_color, frame_buffer, next_position: rect.corner_upper_left() }
     }
+
+    fn next_position(&self, mut position: Point) -> Point {
+        position.x += 1;
+
+        // Check if needed move to next line
+        if !self.rect.contains(position) {
+            position = self.next_line(position);
+        }
+
+        // Check if needed scroll
+        if !self.rect.contains(position) {
+            todo!();
+        }
+
+        position
+    }
+
+    fn next_line(&self, mut position: Point) -> Point {
+        position.x = self.rect.min_x();
+        position.y += 1;
+
+        // Check if needed scroll
+        if !self.rect.contains(position) {
+            todo!();
+        }
+
+        position
+    }
 }
 
 impl Write for ScreenFragmentWriter<'_> {
     fn write_str(&mut self, string: &str) -> core::fmt::Result {
         let mut position = self.next_position;
         for char in string.chars() {
-            self.frame_buffer.set_char(position, char, self.default_color)
-                .unwrap();
-
-            position.x += 1;
-            if !self.rect.contains(position) {
-                position.x = self.rect.min_x();
-                position.y += 1;
-            }
-
-            if !self.rect.contains(position) {
-                panic!("Out of bounds!");
+            match char {
+                '\n' => {
+                    position = self.next_line(position);
+                }
+                _ => {
+                    self.frame_buffer.set_char(position, char, self.default_color)
+                        .unwrap();
+                    position = self.next_position(position);
+                }
             }
         }
         self.next_position = position;
