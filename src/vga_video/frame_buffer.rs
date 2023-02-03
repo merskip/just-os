@@ -14,4 +14,10 @@ pub trait FrameBuffer {
         character: char,
         color: CharacterColor,
     ) -> Result<(), Box<dyn Error>>;
+
+    fn copy_char(
+        &mut self,
+        source: Point,
+        destination: Point
+    ) -> Result<(), Box<dyn Error>>;
 }

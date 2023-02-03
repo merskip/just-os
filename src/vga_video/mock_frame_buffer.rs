@@ -6,7 +6,6 @@ use core::fmt::{Display, Formatter};
 use crate::error::Error;
 use crate::geometry::position::Point;
 use crate::geometry::size::Size;
-use crate::serial_println;
 use crate::vga_video::CharacterColor;
 use crate::vga_video::frame_buffer::FrameBuffer;
 
@@ -18,13 +17,13 @@ pub struct MockFrameBuffer {
 impl MockFrameBuffer {
     pub fn new(cols: usize, rows: usize) -> Self {
         Self {
-            characters: vec![('\0', CharacterColor::zero()); cols * rows],
-            size: Size::new(cols, rows)
+            characters: vec![(char::default(), CharacterColor::zero()); cols * rows],
+            size: Size::new(cols, rows),
         }
     }
 
     pub fn get_chars(&self, x: usize, y: usize, length: usize) -> Vec<char> {
-        let index = self.get_index(Point::new(x, y));
+        let index = self.get_index(Point::new(x, y)).unwrap();
         let range = index..(index + length);
         self.characters[range]
             .iter()
@@ -32,12 +31,15 @@ impl MockFrameBuffer {
     }
 
     pub fn get_char(&self, x: usize, y: usize) -> char {
-        let index = self.get_index(Point::new(x, y));
+        let index = self.get_index(Point::new(x, y)).unwrap();
         self.characters[index].0
     }
 
-    fn get_index(&self, position: Point) -> usize {
-        position.y * self.size.width + position.x
+    fn get_index(&self, position: Point) -> Result<usize, Box<dyn Error>> {
+        if position.y >= self.size.width || position.x >= self.size.height {
+            return Err(Box::new(MockFrameBufferError::OutOfBounds));
+        }
+        Ok(position.y * self.size.width + position.x)
     }
 }
 
@@ -52,12 +54,19 @@ impl FrameBuffer for MockFrameBuffer {
         character: char,
         color: CharacterColor,
     ) -> Result<(), Box<dyn Error>> {
-        if position.y >= self.size.width || position.x >= self.size.height {
-            return Err(Box::new(MockFrameBufferError::OutOfBounds));
-        }
-
-        let index = self.get_index(position);
+        let index = self.get_index(position)?;
         self.characters[index] = (character, color);
+        Ok(())
+    }
+
+    fn copy_char(
+        &mut self,
+        source: Point,
+        destination: Point,
+    ) -> Result<(), Box<dyn Error>> {
+        let destination_index = self.get_index(destination)?;
+        let source_index = self.get_index(source)?;
+        self.characters[destination_index] = self.characters[source_index];
         Ok(())
     }
 }
