@@ -1,3 +1,4 @@
+use alloc::vec::Vec;
 use core::fmt::Write;
 use crate::geometry::position::Point;
 use crate::geometry::rect::Rect;
@@ -49,8 +50,7 @@ fn test_write_short_text() {
     writer.write_str("Abc").unwrap();
 
     assert_eq!(frame_buffer.get_chars(0, 0, 5), ['\0'; 5]);
-    assert_eq!(frame_buffer.get_chars(0, 1, 5),
-               ['\0', 'A', 'b', 'c', '\0']);
+    assert_eq!(frame_buffer.get_chars(0, 1, 5), ['\0', 'A', 'b', 'c', '\0']);
     assert_eq!(frame_buffer.get_chars(0, 2, 5), ['\0'; 5]);
 }
 
@@ -73,12 +73,27 @@ fn test_write_multiline_text() {
                ['\0', 't', ' ', 'a', 'm', 'e', 't', '\0', '\0', '\0', '\0', '\0']);
 }
 
+#[test_case]
+fn test_write_text_with_new_line() {
+    use crate::vga_video::mock_frame_buffer::MockFrameBuffer;
+
+    let mut frame_buffer = MockFrameBuffer::new(80, 25);
+    let mut writer = new_screen_fragment_writer(&mut frame_buffer);
+
+    writer.write_str("Lorem\nipsum").unwrap();
+
+    assert_eq!(frame_buffer.get_chars(0, 1, 12),
+               ['\0', 'L', 'o', 'r', 'e', 'm', '\0', '\0', '\0', '\0', '\0', '\0']);
+    assert_eq!(frame_buffer.get_chars(0, 2, 12),
+               ['\0', 'i', 'p', 's', 'u', 'm', '\0', '\0', '\0', '\0', '\0', '\0']);
+}
+
 #[cfg(test)]
 fn new_screen_fragment_writer(frame_buffer: &mut dyn FrameBuffer) -> ScreenFragmentWriter {
     use crate::geometry::size::Size;
 
     ScreenFragmentWriter::new(
-        Rect::new(Point::new(1, 1), Size::new(10, 10)),
+        Rect::new(Point::new(1, 1), Size::new(10, 3)),
         CharacterColor::default(),
         frame_buffer,
     )

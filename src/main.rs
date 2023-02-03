@@ -111,7 +111,7 @@ fn panic(info: &PanicInfo) -> ! {
 fn test_runner(tests: &[&dyn Testable]) {
     use crate::qemu_exit::*;
 
-    serial_println!("Running {} tests...", tests.len());
+    serial_println!("\x1b[37mRunning {} tests...\x1b[0m", tests.len());
     for test in tests {
         test.run();
     }
@@ -126,7 +126,7 @@ pub trait Testable {
 impl<T> Testable for T where T: Fn() {
     fn run(&self) -> () {
         let start_timestamp = unsafe { x86::time::rdtsc() };
-        serial_print!("{}... ", core::any::type_name::<T>());
+        serial_print!("{}...", core::any::type_name::<T>());
         self();
         let end_timestamp = unsafe { x86::time::rdtsc() };
         serial_println!("\x1b[32m[OK]\x1b[0m in {} cycles", end_timestamp - start_timestamp);
@@ -138,8 +138,10 @@ impl<T> Testable for T where T: Fn() {
 fn panic(info: &PanicInfo) -> ! {
     use crate::qemu_exit::*;
 
+    serial_println!("\x1b[31m");
     serial_println!("[PANIC]");
     serial_println!("{:#?}", info);
+    serial_print!("\x1b[0m");
     qemu_exit(ExitCode::Failed)
 }
 
