@@ -1,3 +1,5 @@
+use pc_keyboard::KeyCode::ControlRight;
+
 #[allow(dead_code)]
 #[repr(u8)]
 pub enum Color {
@@ -29,6 +31,10 @@ impl CharacterColor {
         CharacterColor((background as u8) << 4 | (foreground as u8))
     }
 
+    pub const fn zero() -> CharacterColor {
+        CharacterColor(0)
+    }
+
     pub fn with_foreground(self, foreground: Color) -> CharacterColor {
         CharacterColor(self.0 & 0xF0 | (foreground as u8))
     }
@@ -36,6 +42,6 @@ impl CharacterColor {
 
 impl Default for CharacterColor {
     fn default() -> Self {
-        CharacterColor(0)
+        CharacterColor::new(Color::Gray, Color::Black)
     }
 }

@@ -55,7 +55,7 @@ impl TextScreen<'_> {
 
     fn display_header(&mut self) {
         self.screen_writer.write_string(
-            Point::zero(),
+            Point::default(),
             format!("{} (v{})", self.header.name, self.header.version).as_str(),
             self.default_color.with_foreground(Color::Cyan),
         );

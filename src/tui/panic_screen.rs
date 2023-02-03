@@ -18,7 +18,7 @@ impl PanicScreen<'_> {
         self.buffer.clear_screen();
 
         let color = CharacterColor::new(Color::Red, Color::Black);
-        self.buffer.put_string(Point::zero(), "[PANIC!]", color);
+        self.buffer.put_string(Point::default(), "[PANIC!]", color);
         self.buffer.put_string(Point::new(0, 2), format!("{:#?}", info).as_str(), color);
     }
 }

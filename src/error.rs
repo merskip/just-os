@@ -1,5 +1,5 @@
-use core::fmt::{Display, Formatter};
+use core::fmt::{Debug, Display};
 
-pub trait Error: Display {
+pub trait Error: Debug + Display {
 }
 

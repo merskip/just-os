@@ -1,25 +1,42 @@
 use core::fmt::Write;
 use crate::geometry::position::Point;
 use crate::geometry::rect::Rect;
+use crate::vga_video::{CharacterColor};
 use crate::vga_video::frame_buffer::FrameBuffer;
 
 struct ScreenFragmentWriter<'a> {
     rect: Rect,
+    default_color: CharacterColor,
     frame_buffer: &'a mut dyn FrameBuffer,
-    last_position: Point
+    next_position: Point
 }
 
 impl<'a> ScreenFragmentWriter<'a> {
-    pub fn new(rect: Rect, frame_buffer: &'a mut dyn FrameBuffer) -> Self {
-        Self { rect, frame_buffer, rect }
+    pub fn new(rect: Rect, default_color: CharacterColor, frame_buffer: &'a mut dyn FrameBuffer) -> Self {
+        Self { rect, default_color, frame_buffer, next_position: rect.corner_upper_left() }
     }
 }
 
 impl Write for ScreenFragmentWriter<'_> {
     fn write_str(&mut self, string: &str) -> core::fmt::Result {
+        let mut position = self.next_position;
+        for char in string.chars() {
 
-        self.frame_buffer.set_char()
-        todo!()
+            self.frame_buffer.set_char(position, char, self.default_color)
+                .expect("TODO: panic message");
+
+            position.x += 1;
+            if !self.rect.contains(position) {
+                position.x = self.rect.min_x();
+                position.y += 1
+            }
+
+            if !self.rect.contains(position) {
+                panic!("Out of bounds!");
+            }
+        }
+        self.next_position = position;
+        Ok(())
     }
 }
 
@@ -31,22 +48,14 @@ fn test_write_short_text() {
 
     let mut frame_buffer= MockFrameBuffer::new(80, 25);
     let mut writer = ScreenFragmentWriter::new(
-        Rect::new(Point::new(1, 1), Size::new(10, 100)),
+        Rect::new(Point::new(1, 1), Size::new(10, 10)),
+        CharacterColor::default(),
         &mut frame_buffer,
     );
 
-    writer.write_str("Hello world!").unwrap();
+    writer.write_str("Abc").unwrap();
 
-    assert_eq!(frame_buffer.get_character(1, 1), 'H');
-    assert_eq!(frame_buffer.get_character(1, 2), 'e');
-    assert_eq!(frame_buffer.get_character(1, 3), 'l');
-    assert_eq!(frame_buffer.get_character(1, 4), 'l');
-    assert_eq!(frame_buffer.get_character(1, 5), 'o');
-    assert_eq!(frame_buffer.get_character(1, 6), ' ');
-    assert_eq!(frame_buffer.get_character(1, 7), 'w');
-    assert_eq!(frame_buffer.get_character(1, 8), 'o');
-    assert_eq!(frame_buffer.get_character(1, 9), 'r');
-    assert_eq!(frame_buffer.get_character(1, 10), 'l');
-    assert_eq!(frame_buffer.get_character(1, 11), 'd');
-    assert_eq!(frame_buffer.get_character(1, 12), '!');
+    assert_eq!(frame_buffer.get_character(1, 1), 'A');
+    assert_eq!(frame_buffer.get_character(2, 1), 'b');
+    assert_eq!(frame_buffer.get_character(3, 1), 'c');
 }
