@@ -1,33 +1,33 @@
 #[derive(Debug, Clone, Copy)]
-pub struct Position {
-    pub column: usize,
-    pub row: usize,
+pub struct Point {
+    pub x: usize,
+    pub y: usize,
 }
 
-impl Position {
+impl Point {
     pub const fn zero() -> Self {
-        Position { column: 0, row: 0 }
+        Point { x: 0, y: 0 }
     }
 
     pub const fn new(column: usize, row: usize) -> Self {
-        Position { column, row }
+        Point { x: column, y: row }
     }
 }
 
-impl Position {
-    pub fn next(&self) -> Position {
-        Position {
-            column: self.column + 1,
-            row: self.row,
+impl Point {
+    pub fn next(&self) -> Point {
+        Point {
+            x: self.x + 1,
+            y: self.y,
         }
 
          
     }
 
-    pub fn next_row(&self) -> Position {
-        Position {
-            column: 0,
-            row: self.row + 1,
+    pub fn next_row(&self) -> Point {
+        Point {
+            x: 0,
+            y: self.y + 1,
         }
     }
 }

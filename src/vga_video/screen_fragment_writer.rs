@@ -1,20 +1,24 @@
 use core::fmt::Write;
+use crate::geometry::position::Point;
 use crate::geometry::rect::Rect;
 use crate::vga_video::frame_buffer::FrameBuffer;
 
 struct ScreenFragmentWriter<'a> {
     rect: Rect,
     frame_buffer: &'a mut dyn FrameBuffer,
+    last_position: Point
 }
 
 impl<'a> ScreenFragmentWriter<'a> {
     pub fn new(rect: Rect, frame_buffer: &'a mut dyn FrameBuffer) -> Self {
-        Self { rect, frame_buffer }
+        Self { rect, frame_buffer, rect }
     }
 }
 
 impl Write for ScreenFragmentWriter<'_> {
     fn write_str(&mut self, string: &str) -> core::fmt::Result {
+
+        self.frame_buffer.set_char()
         todo!()
     }
 }
@@ -23,11 +27,11 @@ impl Write for ScreenFragmentWriter<'_> {
 fn test_write_short_text() {
     use crate::vga_video::mock_frame_buffer::MockFrameBuffer;
     use crate::geometry::size::Size;
-    use crate::geometry::position::Position;
+    use crate::geometry::position::Point;
 
     let mut frame_buffer= MockFrameBuffer::new(80, 25);
     let mut writer = ScreenFragmentWriter::new(
-        Rect::new(Position::new(1, 1), Size::new(10, 100)),
+        Rect::new(Point::new(1, 1), Size::new(10, 100)),
         &mut frame_buffer,
     );
 

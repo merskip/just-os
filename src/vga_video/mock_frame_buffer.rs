@@ -4,7 +4,7 @@ use alloc::vec::Vec;
 use core::fmt::{Display, Formatter};
 
 use crate::error::Error;
-use crate::geometry::position::Position;
+use crate::geometry::position::Point;
 use crate::vga_video::CharacterColor;
 use crate::vga_video::frame_buffer::FrameBuffer;
 
@@ -24,23 +24,23 @@ impl MockFrameBuffer {
     }
 
     pub fn get_character(&self, column: usize, row: usize) -> char {
-        let index = self.get_index(Position::new(column, row));
+        let index = self.get_index(Point::new(column, row));
         self.characters[index].0
     }
 
-    fn get_index(&self, position: Position) -> usize {
-        position.row * self.cols + position.column
+    fn get_index(&self, position: Point) -> usize {
+        position.y * self.cols + position.x
     }
 }
 
 impl FrameBuffer for MockFrameBuffer {
     fn set_char(
         &mut self,
-        position: Position,
+        position: Point,
         character: char,
         color: CharacterColor,
     ) -> Result<(), Box<dyn Error>> {
-        if position.row >= self.rows || position.column >= self.cols {
+        if position.y >= self.rows || position.x >= self.cols {
             return Err(Box::new(MockFrameBufferError::OutOfBounds));
         }
 

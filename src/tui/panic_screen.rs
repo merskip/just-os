@@ -1,7 +1,7 @@
 use alloc::format;
 use core::panic::PanicInfo;
 
-use crate::{geometry::position::Position, vga_video::{CharacterColor, Color, ScreenBuffer}};
+use crate::{geometry::position::Point, vga_video::{CharacterColor, Color, ScreenBuffer}};
 
 pub struct PanicScreen<'a> {
     buffer: &'a mut ScreenBuffer,
@@ -18,7 +18,7 @@ impl PanicScreen<'_> {
         self.buffer.clear_screen();
 
         let color = CharacterColor::new(Color::Red, Color::Black);
-        self.buffer.put_string(Position::zero(), "[PANIC!]", color);
-        self.buffer.put_string(Position::new(0, 2), format!("{:#?}", info).as_str(), color);
+        self.buffer.put_string(Point::zero(), "[PANIC!]", color);
+        self.buffer.put_string(Point::new(0, 2), format!("{:#?}", info).as_str(), color);
     }
 }

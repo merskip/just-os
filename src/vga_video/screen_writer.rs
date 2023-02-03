@@ -1,4 +1,4 @@
-use crate::geometry::position::Position;
+use crate::geometry::position::Point;
 
 use super::{CharacterColor, ScreenBuffer};
 
@@ -25,7 +25,7 @@ impl ScreenWriter<'_> {
         self.buffer.clear_screen();
     }
 
-    pub fn write_string(&mut self, position: Position, string: &str, color: CharacterColor) -> Position {
+    pub fn write_string(&mut self, position: Point, string: &str, color: CharacterColor) -> Point {
         let mut position = position;
         for character in string.as_bytes() {
             position = self.write_char(position, *character, color);
@@ -33,7 +33,7 @@ impl ScreenWriter<'_> {
         position
     }
 
-    pub fn write_char(&mut self, position: Position, character: u8, color: CharacterColor) -> Position {
+    pub fn write_char(&mut self, position: Point, character: u8, color: CharacterColor) -> Point {
         match character {
             b'\n' => position.next_row(),
             _ => {
@@ -44,17 +44,17 @@ impl ScreenWriter<'_> {
         }
     }
 
-    fn scroll_if_needed(&mut self, position: Position) -> Position {
+    fn scroll_if_needed(&mut self, position: Point) -> Point {
         if self.needs_scroll(position) {
             self.scroll_one_row_up();
-            Position::new(position.column, position.row - 1)
+            Point::new(position.x, position.y - 1)
         } else {
             position
         }
     }
 
-    fn needs_scroll(&self, position: Position) -> bool {
-        position.row >= ScreenBuffer::size().height
+    fn needs_scroll(&self, position: Point) -> bool {
+        position.y >= ScreenBuffer::size().height
     }
 
     fn scroll_one_row_up(&mut self) {

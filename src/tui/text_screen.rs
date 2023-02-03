@@ -1,7 +1,7 @@
 use alloc::format;
 use alloc::string::String;
 
-use crate::geometry::position::Position;
+use crate::geometry::position::Point;
 use crate::log::{Log, LoggerListener};
 use crate::vga_video::{CharacterColor, Color};
 use crate::vga_video::screen_writer::ScreenWriter;
@@ -21,7 +21,7 @@ pub struct TextScreen<'a> {
     screen_writer: ScreenWriter<'a>,
     default_color: CharacterColor,
     header: Header,
-    next_log_position: Position,
+    next_log_position: Point,
 }
 
 impl <'a> TextScreen<'a> {
@@ -34,7 +34,7 @@ impl <'a> TextScreen<'a> {
             screen_writer,
             default_color,
             header,
-            next_log_position: Position::new(0, 2),
+            next_log_position: Point::new(0, 2),
         }
     }
 }
@@ -55,12 +55,12 @@ impl TextScreen<'_> {
 
     fn display_header(&mut self) {
         self.screen_writer.write_string(
-            Position::zero(),
+            Point::zero(),
             format!("{} (v{})", self.header.name, self.header.version).as_str(),
             self.default_color.with_foreground(Color::Cyan),
         );
         self.screen_writer.write_string(
-            Position::new(0, 1),
+            Point::new(0, 1),
             "=== [Logs] === ",
             self.default_color
         );

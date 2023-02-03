@@ -2,7 +2,7 @@ use core::ops::{Deref, DerefMut};
 
 use volatile::Volatile;
 
-use crate::geometry::{position::Position, size::Size};
+use crate::geometry::{position::Point, size::Size};
 
 use super::{CharacterColor, Color};
 
@@ -33,16 +33,16 @@ impl ScreenBuffer {
 }
 
 impl ScreenBuffer {
-    pub fn put_string(&mut self, position: Position, string: &str, color: CharacterColor) {
+    pub fn put_string(&mut self, position: Point, string: &str, color: CharacterColor) {
         let mut position = position;
         for character in string.as_bytes() {
             match character {
                 b'\n' => position = position.next_row(),
                 _ =>  {
-                    if position.column >= SCREEN_WIDTH {
+                    if position.x >= SCREEN_WIDTH {
                         position = position.next_row();
                     }
-                    if position.row >= SCREEN_HEIGHT {
+                    if position.y >= SCREEN_HEIGHT {
                         return;
                     }
                     self.put_char(position, *character, color);
@@ -52,9 +52,9 @@ impl ScreenBuffer {
         }
     }
 
-    pub fn put_char(&mut self, position: Position, character: u8, color: CharacterColor) {
+    pub fn put_char(&mut self, position: Point, character: u8, color: CharacterColor) {
         let screen_character = ScreenCharacter { character, color };
-        self.characters[position.row][position.column].write(screen_character);
+        self.characters[position.y][position.x].write(screen_character);
     }
 
     pub fn copy_row(&mut self, target_row: usize, destination_row: usize) {
