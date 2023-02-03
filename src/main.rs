@@ -14,6 +14,7 @@ extern crate bitflags;
 use alloc::boxed::Box;
 use alloc::format;
 use alloc::string::ToString;
+use core::arch::asm;
 use core::panic::PanicInfo;
 
 use bootloader::{BootInfo, entry_point};
@@ -124,9 +125,11 @@ pub trait Testable {
 
 impl<T> Testable for T where T: Fn() {
     fn run(&self) -> () {
-        serial_print!("{}...\t", core::any::type_name::<T>());
+        let start_timestamp = unsafe { x86::time::rdtsc() };
+        serial_print!("{}... ", core::any::type_name::<T>());
         self();
-        serial_println!("\x1b[32m[OK]\x1b[0m");
+        let end_timestamp = unsafe { x86::time::rdtsc() };
+        serial_println!("\x1b[32m[OK]\x1b[0m in {} cycles", end_timestamp - start_timestamp);
     }
 }
 

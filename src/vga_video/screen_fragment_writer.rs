@@ -1,8 +1,6 @@
-use alloc::vec;
 use core::fmt::Write;
 use crate::geometry::position::Point;
 use crate::geometry::rect::Rect;
-use crate::serial_println;
 use crate::vga_video::{CharacterColor};
 use crate::vga_video::frame_buffer::FrameBuffer;
 
@@ -50,10 +48,10 @@ fn test_write_short_text() {
 
     writer.write_str("Abc").unwrap();
 
-    assert_eq!(frame_buffer.get_chars(0, 0, 5), vec!['\0'; 5]);
+    assert_eq!(frame_buffer.get_chars(0, 0, 5), ['\0'; 5]);
     assert_eq!(frame_buffer.get_chars(0, 1, 5),
                ['\0', 'A', 'b', 'c', '\0']);
-    assert_eq!(frame_buffer.get_chars(0, 2, 5), vec!['\0'; 5]);
+    assert_eq!(frame_buffer.get_chars(0, 2, 5), ['\0'; 5]);
 }
 
 #[test_case]
