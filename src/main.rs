@@ -53,14 +53,13 @@ entry_point!(kernel_main);
 
 #[no_mangle]
 fn kernel_main(boot_info: &'static BootInfo) -> ! {
-    let mut mapper = unsafe {
-        memory::init(VirtAddr::new(boot_info.physical_memory_offset))
-    };
-    let mut frame_allocator = unsafe {
-        memory::BootInfoFrameAllocator::new(&boot_info.memory_map)
-    };
-    allocator::init(&mut mapper, &mut frame_allocator)
-        .expect("heap allocator initialization failed");
+    unsafe {
+        let mut mapper = memory::init(VirtAddr::new(boot_info.physical_memory_offset));
+        let mut frame_allocator = memory::BootInfoFrameAllocator::new(&boot_info.memory_map);
+
+        allocator::init(&mut mapper, &mut frame_allocator)
+            .expect("heap allocator initialization failed");
+    }
 
     let screen_writer = ScreenWriter::new(vga_screen_buffer());
     let default_color = CharacterColor::new(Color::Gray, Color::Black);
