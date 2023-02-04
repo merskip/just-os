@@ -3,7 +3,6 @@ use core::fmt::Write;
 use crate::error::Error;
 use crate::geometry::position::Point;
 use crate::geometry::rect::Rect;
-use crate::serial_println;
 use crate::vga_video::{CharacterColor};
 use crate::vga_video::frame_buffer::FrameBuffer;
 
@@ -92,9 +91,14 @@ impl<'a> ScreenFragmentWriter<'a> {
 #[test_case]
 fn test_write_short_text() {
     use crate::vga_video::mock_frame_buffer::MockFrameBuffer;
+    use crate::geometry::size::Size;
 
     let mut frame_buffer = MockFrameBuffer::new(80, 25);
-    let mut writer = new_screen_fragment_writer(&mut frame_buffer);
+    let mut writer = ScreenFragmentWriter::new(
+        Rect::new(Point::new(1, 1), Size::new(10, 3)),
+        CharacterColor::default(),
+        &mut frame_buffer,
+    );
 
     writer.write_str("Abc").unwrap();
 
@@ -106,9 +110,14 @@ fn test_write_short_text() {
 #[test_case]
 fn test_write_multiline_text() {
     use crate::vga_video::mock_frame_buffer::MockFrameBuffer;
+    use crate::geometry::size::Size;
 
     let mut frame_buffer = MockFrameBuffer::new(80, 25);
-    let mut writer = new_screen_fragment_writer(&mut frame_buffer);
+    let mut writer = ScreenFragmentWriter::new(
+        Rect::new(Point::new(1, 1), Size::new(10, 3)),
+        CharacterColor::default(),
+        &mut frame_buffer,
+    );
 
     writer.write_str("Lorem ipsu\
                              m dolor si\
@@ -125,9 +134,14 @@ fn test_write_multiline_text() {
 #[test_case]
 fn test_write_text_with_new_line() {
     use crate::vga_video::mock_frame_buffer::MockFrameBuffer;
+    use crate::geometry::size::Size;
 
     let mut frame_buffer = MockFrameBuffer::new(80, 25);
-    let mut writer = new_screen_fragment_writer(&mut frame_buffer);
+    let mut writer = ScreenFragmentWriter::new(
+        Rect::new(Point::new(1, 1), Size::new(10, 3)),
+        CharacterColor::default(),
+        &mut frame_buffer,
+    );
 
     writer.write_str("Lorem\nipsum").unwrap();
 
@@ -140,9 +154,14 @@ fn test_write_text_with_new_line() {
 #[test_case]
 fn test_write_text_with_scroll() {
     use crate::vga_video::mock_frame_buffer::MockFrameBuffer;
+    use crate::geometry::size::Size;
 
     let mut frame_buffer = MockFrameBuffer::new(80, 25);
-    let mut writer = new_screen_fragment_writer(&mut frame_buffer);
+    let mut writer = ScreenFragmentWriter::new(
+        Rect::new(Point::new(1, 1), Size::new(10, 3)),
+        CharacterColor::default(),
+        &mut frame_buffer,
+    );
 
     writer.write_str("Lorem\nipsum\ndolor\nsit").unwrap();
 
@@ -154,13 +173,28 @@ fn test_write_text_with_scroll() {
                ['\0', 's', 'i', 't', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0']);
 }
 
-#[cfg(test)]
-fn new_screen_fragment_writer(frame_buffer: &mut dyn FrameBuffer) -> ScreenFragmentWriter {
+#[test_case]
+fn test_two_fragments() {
+    use crate::vga_video::mock_frame_buffer::MockFrameBuffer;
     use crate::geometry::size::Size;
 
-    ScreenFragmentWriter::new(
-        Rect::new(Point::new(1, 1), Size::new(10, 3)),
+    let mut frame_buffer = MockFrameBuffer::new(80, 25);
+
+    let mut writer_1 = ScreenFragmentWriter::new(
+        Rect::new(Point::new(1, 1), Size::new(10, 1)),
         CharacterColor::default(),
-        frame_buffer,
-    )
+        &mut frame_buffer,
+    );
+
+    // let mut writer_2 = ScreenFragmentWriter::new(
+    //     Rect::new(Point::new(1, 4), Size::new(10, 1)),
+    //     CharacterColor::default(),
+    //     &mut frame_buffer,
+    // );
+
+    writer_1.write_str("Lorem").unwrap();
+
+    // writer_2.write_str("Ipusm").unwrap();
+
+    // TODO: asserts
 }
