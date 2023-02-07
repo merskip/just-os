@@ -7,7 +7,7 @@ use crate::geometry::rect::Rect;
 use crate::vga_video::{CharacterColor};
 use crate::vga_video::frame_buffer::FrameBuffer;
 
-struct ScreenFragmentWriter<'a> {
+pub struct ScreenFragmentWriter<'a> {
     rect: Rect,
     default_color: CharacterColor,
     frame_buffer: &'a RefCell<dyn FrameBuffer>,
