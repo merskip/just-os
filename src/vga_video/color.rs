@@ -25,9 +25,14 @@ pub enum Color {
 #[repr(transparent)]
 pub struct CharacterColor(u8);
 
+#[allow(dead_code)]
 impl CharacterColor {
     pub const fn new(foreground: Color, background: Color) -> CharacterColor {
         CharacterColor((background as u8) << 4 | (foreground as u8))
+    }
+
+    pub const fn zero() -> CharacterColor {
+        CharacterColor(0)
     }
 }
 

@@ -14,6 +14,7 @@ extern crate bitflags;
 
 use alloc::boxed::Box;
 use alloc::format;
+use core::cell::RefCell;
 use core::fmt::Write;
 use core::panic::PanicInfo;
 
@@ -53,7 +54,9 @@ const PKG_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 entry_point!(kernel_main);
 
-static mut VGA_FRAME_BUFFER: VgaFrameBuffer = unsafe { VgaFrameBuffer::new(0xb8000) };
+static mut VGA_FRAME_BUFFER: RefCell<VgaFrameBuffer> = unsafe {
+    RefCell::new(VgaFrameBuffer::new(0xb8000))
+};
 
 #[no_mangle]
 fn kernel_main(boot_info: &'static BootInfo) -> ! {
@@ -68,7 +71,7 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
     let mut logs_fragment_writer = ScreenFragmentWriter::new(
         Rect::new(Point::new(0, 2), Size::new(80, 23)),
         CharacterColor::default(),
-        unsafe { &mut VGA_FRAME_BUFFER },
+        unsafe { &VGA_FRAME_BUFFER },
     );
 
     KERNEL_LOGGER.lock().register_listener(Box::new(move |log| {
@@ -140,6 +143,7 @@ impl<T> Testable for T where T: Fn() {
 fn panic(info: &PanicInfo) -> ! {
     use crate::qemu_exit::*;
 
+    interrupts::disable();
     serial_println!("\x1b[31m");
     serial_println!("[PANIC]");
     serial_println!("{:#?}", info);

@@ -1,7 +1,6 @@
 use alloc::boxed::Box;
 use alloc::vec;
 use alloc::vec::Vec;
-use core::fmt::{Display, Formatter};
 
 use crate::error::Error;
 use crate::geometry::position::Point;
@@ -23,16 +22,11 @@ impl MockFrameBuffer {
     }
 
     pub fn get_chars(&self, x: usize, y: usize, length: usize) -> Vec<char> {
-        let index = self.get_index(Point::new(x, y)).unwrap();
+        let index = self.get_index(Point::new(x, y));
         let range = index..(index + length);
         self.characters[range]
             .iter()
             .map(|c| c.0).collect()
-    }
-
-    pub fn get_char(&self, x: usize, y: usize) -> char {
-        let index = self.get_index(Point::new(x, y)).unwrap();
-        self.characters[index].0
     }
 }
 
@@ -47,7 +41,7 @@ impl FrameBuffer for MockFrameBuffer {
         character: char,
         color: CharacterColor,
     ) -> Result<(), Box<dyn Error>> {
-        let index = self.get_index(position)?;
+        let index = self.get_index(position);
         self.characters[index] = (character, color);
         Ok(())
     }
@@ -57,22 +51,9 @@ impl FrameBuffer for MockFrameBuffer {
         source: Point,
         destination: Point,
     ) -> Result<(), Box<dyn Error>> {
-        let destination_index = self.get_index(destination)?;
-        let source_index = self.get_index(source)?;
+        let destination_index = self.get_index(destination);
+        let source_index = self.get_index(source);
         self.characters[destination_index] = self.characters[source_index];
         Ok(())
     }
 }
-
-#[derive(Debug)]
-enum MockFrameBufferError {
-    OutOfBounds
-}
-
-impl Display for MockFrameBufferError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
-        write!(f, "{:?}", self)
-    }
-}
-
-impl Error for MockFrameBufferError {}
