@@ -20,4 +20,9 @@ pub trait FrameBuffer {
         source: Point,
         destination: Point
     ) -> Result<(), Box<dyn Error>>;
+
+    fn get_index(&self, position: Point) -> usize {
+        let size = self.get_size();
+        position.y * size.width + position.x
+    }
 }

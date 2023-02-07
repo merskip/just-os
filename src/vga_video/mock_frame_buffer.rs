@@ -34,13 +34,6 @@ impl MockFrameBuffer {
         let index = self.get_index(Point::new(x, y)).unwrap();
         self.characters[index].0
     }
-
-    fn get_index(&self, position: Point) -> Result<usize, Box<dyn Error>> {
-        if position.y >= self.size.width || position.x >= self.size.height {
-            return Err(Box::new(MockFrameBufferError::OutOfBounds));
-        }
-        Ok(position.y * self.size.width + position.x)
-    }
 }
 
 impl FrameBuffer for MockFrameBuffer {

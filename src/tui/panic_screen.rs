@@ -1,5 +1,6 @@
-use alloc::format;
 use core::panic::PanicInfo;
+
+use alloc::format;
 
 use crate::{geometry::position::Point, vga_video::{CharacterColor, Color, ScreenBuffer}};
 

@@ -1,4 +1,5 @@
 use core::fmt::{Display, Formatter};
+
 use crate::geometry::position::Point;
 use crate::geometry::size::Size;
 
@@ -8,6 +9,7 @@ pub struct Rect {
     pub size: Size,
 }
 
+#[allow(dead_code)]
 impl Rect {
     pub fn new(origin: Point, size: Size) -> Self {
         Self { origin, size }
@@ -50,6 +52,7 @@ impl Rect {
     }
 }
 
+#[allow(dead_code)]
 impl Rect {
     pub fn corner_upper_left(&self) -> Point {
         Point::new(self.min_x(), self.min_y())

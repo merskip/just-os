@@ -10,6 +10,10 @@ impl Size {
     pub const fn new(width: usize, height: usize) -> Self {
         Size { width, height }
     }
+
+    pub const fn area(&self) -> usize {
+        self.width * self.height
+    }
 }
 
 impl Display for Size {

@@ -1,26 +1,26 @@
 use alloc::boxed::Box;
-use core::cell::RefCell;
 use core::fmt::Write;
+
 use crate::error::Error;
 use crate::geometry::position::Point;
 use crate::geometry::rect::Rect;
-use crate::vga_video::{CharacterColor};
+use crate::vga_video::CharacterColor;
 use crate::vga_video::frame_buffer::FrameBuffer;
 
-pub struct ScreenFragmentWriter<'a> {
+pub struct ScreenFragmentWriter {
     rect: Rect,
     default_color: CharacterColor,
-    frame_buffer: &'a RefCell<dyn FrameBuffer>,
+    frame_buffer: &'static mut dyn FrameBuffer,
     next_position: Point,
 }
 
-impl<'a> ScreenFragmentWriter<'a> {
-    pub fn new(rect: Rect, default_color: CharacterColor, frame_buffer: &'a RefCell<dyn FrameBuffer>) -> Self {
+impl ScreenFragmentWriter {
+    pub fn new(rect: Rect, default_color: CharacterColor, frame_buffer: &'static mut dyn FrameBuffer) -> Self {
         Self { rect, default_color, frame_buffer, next_position: rect.corner_upper_left() }
     }
 }
 
-impl Write for ScreenFragmentWriter<'_> {
+impl Write for ScreenFragmentWriter {
     fn write_str(&mut self, string: &str) -> core::fmt::Result {
         for char in string.chars() {
             if self.needs_scroll() {
@@ -32,7 +32,7 @@ impl Write for ScreenFragmentWriter<'_> {
                     self.move_to_next_line();
                 }
                 _ => {
-                    self.frame_buffer.borrow_mut()
+                    self.frame_buffer
                         .set_char(self.next_position, char, self.default_color)
                         .unwrap();
                     self.move_to_next_position();
@@ -43,7 +43,7 @@ impl Write for ScreenFragmentWriter<'_> {
     }
 }
 
-impl<'a> ScreenFragmentWriter<'a> {
+impl ScreenFragmentWriter {
     fn move_to_next_position(&mut self) {
         self.next_position.x += 1;
 
@@ -65,13 +65,13 @@ impl<'a> ScreenFragmentWriter<'a> {
     fn scroll_up(&mut self) -> Result<(), Box<dyn Error>> {
         let rows = self.rect.min_y()..=self.rect.max_y();
         let columns = self.rect.min_x()..=self.rect.max_x();
-        let mut frame_buffer = self.frame_buffer.borrow_mut();
+        // let mut frame_buffer = ;
 
         for row in rows.skip(1) {
             let source_row = row;
             let destination_row = row - 1;
             for column in columns.clone() {
-                frame_buffer.copy_char(
+                self.frame_buffer.copy_char(
                     Point::new(column, source_row),
                     Point::new(column, destination_row),
                 )?;
@@ -80,7 +80,7 @@ impl<'a> ScreenFragmentWriter<'a> {
 
         let last_row = self.rect.max_y();
         for column in columns {
-            frame_buffer.set_char(
+            self.frame_buffer.set_char(
                 Point::new(column, last_row),
                 char::default(),
                 CharacterColor::default(),

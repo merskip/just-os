@@ -3,11 +3,12 @@ use alloc::{
     string::{String, ToString},
     vec::Vec,
 };
+use core::fmt::{Display, Formatter};
 
 use lazy_static::lazy_static;
 use spin::Mutex;
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub enum Level {
     DEBUG,
     INFO,
@@ -15,7 +16,7 @@ pub enum Level {
     ERROR,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Log {
     pub level: Level,
     pub message: String,
@@ -23,11 +24,7 @@ pub struct Log {
 
 pub struct Logger {
     logs: Vec<Log>,
-    listeners: Vec<Box<dyn LoggerListener>>,
-}
-
-pub trait LoggerListener {
-    fn did_log(&mut self, log: &Log);
+    listeners: Vec<Box<dyn FnMut(Log)>>,
 }
 
 unsafe impl Send for Logger {}
@@ -40,7 +37,7 @@ impl Logger {
         }
     }
 
-    pub fn register_listener(&mut self, listener: Box<dyn LoggerListener>) {
+    pub fn register_listener(&mut self, listener: Box<dyn FnMut(Log)>) {
         self.listeners.push(listener);
     }
 }
@@ -53,10 +50,16 @@ impl Logger {
         };
 
         for listener in &mut self.listeners {
-            listener.did_log(&log);
+            listener(log.clone());
         }
-        
+
         self.logs.push(log);
+    }
+}
+
+impl Display for Log {
+    fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
+        write!(f, "[{:?}] {}", self.level, self.message)
     }
 }
 
@@ -68,7 +71,7 @@ lazy_static! {
 #[doc(hidden)]
 pub fn log(level: Level, message: &str) {
     use x86_64::instructions::interrupts;
-    
+
     interrupts::without_interrupts(|| {
         let mut logger = KERNEL_LOGGER.lock();
         logger.log(level, message);

@@ -2,6 +2,7 @@
 #![no_main]
 #![feature(abi_x86_interrupt)]
 #![feature(alloc_error_handler)]
+#![feature(const_mut_refs)]
 #![feature(custom_test_frameworks)]
 #![feature(associated_type_defaults)]
 #![test_runner(crate::test_runner)]
@@ -13,21 +14,22 @@ extern crate bitflags;
 
 use alloc::boxed::Box;
 use alloc::format;
-use alloc::string::ToString;
-use core::arch::asm;
+use core::fmt::Write;
 use core::panic::PanicInfo;
 
 use bootloader::{BootInfo, entry_point};
 use x86_64::VirtAddr;
 
+use crate::geometry::position::Point;
+use crate::geometry::rect::Rect;
+use crate::geometry::size::Size;
 use crate::log::KERNEL_LOGGER;
 use crate::rtc::RTC;
 use crate::task::executor::Executor;
 use crate::task::keyboard;
-use crate::tui::panic_screen::PanicScreen;
-use crate::tui::text_screen::{Header, TextScreen};
-use crate::vga_video::{CharacterColor, Color, ScreenBuffer, vga_screen_buffer};
-use crate::vga_video::screen_writer::ScreenWriter;
+use crate::vga_video::CharacterColor;
+use crate::vga_video::screen_fragment_writer::ScreenFragmentWriter;
+use crate::vga_video::vga_frame_buffer::VgaFrameBuffer;
 
 mod allocator;
 mod gdt;
@@ -51,6 +53,8 @@ const PKG_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 entry_point!(kernel_main);
 
+static mut VGA_FRAME_BUFFER: VgaFrameBuffer = unsafe { VgaFrameBuffer::new(0xb8000) };
+
 #[no_mangle]
 fn kernel_main(boot_info: &'static BootInfo) -> ! {
     unsafe {
@@ -61,19 +65,18 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
             .expect("heap allocator initialization failed");
     }
 
-    let screen_writer = ScreenWriter::new(vga_screen_buffer());
-    let default_color = CharacterColor::new(Color::Gray, Color::Black);
+    let mut logs_fragment_writer = ScreenFragmentWriter::new(
+        Rect::new(Point::new(0, 2), Size::new(80, 23)),
+        CharacterColor::default(),
+        unsafe { &mut VGA_FRAME_BUFFER },
+    );
 
-    let mut text_screen = Box::new(TextScreen::new(
-        screen_writer,
-        default_color,
-        Header::new(PKG_NAME.to_string(), PKG_VERSION.to_string()),
-    ));
-    text_screen.display();
+    KERNEL_LOGGER.lock().register_listener(Box::new(move |log| {
+        serial_println!("{:?}", &log);
+        writeln!(logs_fragment_writer, "{}", log).unwrap();
+    }));
 
-    KERNEL_LOGGER.lock().register_listener(text_screen);
-
-    log_info!("Hello {}!", "world");
+    log_info!("{} (ver. {})", PKG_NAME, PKG_VERSION);
 
     interrupts::init();
     gdt::init();
@@ -99,8 +102,8 @@ fn alloc_error_handler(layout: alloc::alloc::Layout) -> ! {
 #[panic_handler]
 #[cfg(not(test))]
 fn panic(info: &PanicInfo) -> ! {
-    let mut panic_screen = PanicScreen::new(vga_screen_buffer());
-    panic_screen.display(info);
+    // let mut panic_screen = PanicScreen::new(vga_screen_buffer());
+    // panic_screen.display(info);
 
     interrupts::disable();
     interrupts::halt_loop();

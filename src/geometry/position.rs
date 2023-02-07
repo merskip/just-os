@@ -23,21 +23,3 @@ impl Display for Point {
         write!(f, "Point(x={}, y={})", self.x, self.y)
     }
 }
-
-impl Point {
-    #[deprecated]
-    pub fn next(&self) -> Point {
-        Point {
-            x: self.x + 1,
-            y: self.y,
-        }
-    }
-
-    #[deprecated]
-    pub fn next_row(&self) -> Point {
-        Point {
-            x: 0,
-            y: self.y + 1,
-        }
-    }
-}
