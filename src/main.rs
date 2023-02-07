@@ -14,7 +14,6 @@ extern crate bitflags;
 
 use alloc::boxed::Box;
 use alloc::format;
-use core::cell::RefCell;
 use core::fmt::Write;
 use core::panic::PanicInfo;
 
@@ -28,9 +27,9 @@ use crate::log::KERNEL_LOGGER;
 use crate::rtc::RTC;
 use crate::task::executor::Executor;
 use crate::task::keyboard;
-use crate::vga_video::CharacterColor;
+use crate::tui::panic_screen::PanicScreen;
+use crate::vga_video::{CharacterColor, VGA_FRAME_BUFFER};
 use crate::vga_video::screen_fragment_writer::ScreenFragmentWriter;
-use crate::vga_video::vga_frame_buffer::VgaFrameBuffer;
 
 mod allocator;
 mod gdt;
@@ -48,15 +47,13 @@ mod error;
 
 #[cfg(test)]
 mod qemu_exit;
+#[cfg(test)]
+use qemu_exit::{ExitCode, qemu_exit};
 
 const PKG_NAME: &str = env!("CARGO_PKG_NAME");
 const PKG_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 entry_point!(kernel_main);
-
-static mut VGA_FRAME_BUFFER: RefCell<VgaFrameBuffer> = unsafe {
-    RefCell::new(VgaFrameBuffer::new(0xb8000))
-};
 
 #[no_mangle]
 fn kernel_main(boot_info: &'static BootInfo) -> ! {
@@ -103,12 +100,18 @@ fn alloc_error_handler(layout: alloc::alloc::Layout) -> ! {
 }
 
 #[panic_handler]
-#[cfg(not(test))]
 fn panic(info: &PanicInfo) -> ! {
-    // let mut panic_screen = PanicScreen::new(vga_screen_buffer());
-    // panic_screen.display(info);
-
     interrupts::disable();
+
+    serial_println!("[PANIC!]");
+    serial_println!("{:#?}", info);
+
+    let mut panic_screen = PanicScreen::new(unsafe { &VGA_FRAME_BUFFER });
+    panic_screen.display(info);
+
+    #[cfg(test)]
+    qemu_exit(ExitCode::Failed);
+
     interrupts::halt_loop();
 }
 
@@ -136,19 +139,6 @@ impl<T> Testable for T where T: Fn() {
         let end_timestamp = unsafe { x86::time::rdtsc() };
         serial_println!("\x1b[32m[OK]\x1b[0m in {} cycles", end_timestamp - start_timestamp);
     }
-}
-
-#[panic_handler]
-#[cfg(test)]
-fn panic(info: &PanicInfo) -> ! {
-    use crate::qemu_exit::*;
-
-    interrupts::disable();
-    serial_println!("\x1b[31m");
-    serial_println!("[PANIC]");
-    serial_println!("{:#?}", info);
-    serial_print!("\x1b[0m");
-    qemu_exit(ExitCode::Failed)
 }
 
 #[test_case]

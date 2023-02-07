@@ -1,12 +1,15 @@
+use core::cell::RefCell;
 pub use color::*;
+use crate::vga_video::vga_frame_buffer::VgaFrameBuffer;
 
 pub mod color;
 pub mod vga_frame_buffer;
 pub mod screen_fragment_writer;
-mod frame_buffer;
+pub mod frame_buffer;
+
 #[cfg(test)]
 pub mod mock_frame_buffer;
 
-// pub fn vga_screen_buffer() -> &'static mut ScreenBuffer {
-//     unsafe { ScreenBuffer::new(0xb8000) }
-// }
+pub static mut VGA_FRAME_BUFFER: RefCell<VgaFrameBuffer> = unsafe {
+    RefCell::new(VgaFrameBuffer::new(0xb8000))
+};

@@ -3,7 +3,7 @@ use core::fmt::{Display, Formatter};
 use crate::geometry::position::Point;
 use crate::geometry::size::Size;
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub struct Rect {
     pub origin: Point,
     pub size: Size,

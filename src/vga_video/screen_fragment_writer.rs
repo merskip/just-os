@@ -17,7 +17,12 @@ pub struct ScreenFragmentWriter<'a> {
 
 impl<'a> ScreenFragmentWriter<'a> {
     pub fn new(rect: Rect, default_color: CharacterColor, frame_buffer: &'a RefCell<dyn FrameBuffer>) -> Self {
-        Self { rect, default_color, frame_buffer, next_position: rect.corner_upper_left() }
+        Self {
+            rect: rect.clone(),
+            default_color,
+            frame_buffer,
+            next_position: rect.corner_upper_left(),
+        }
     }
 }
 
@@ -33,8 +38,7 @@ impl Write for ScreenFragmentWriter<'_> {
                     self.move_to_next_line();
                 }
                 _ => {
-                    self.frame_buffer
-                        .borrow_mut()
+                    self.frame_buffer.borrow_mut()
                         .set_char(self.next_position, char, self.default_color)
                         .unwrap();
                     self.move_to_next_position();

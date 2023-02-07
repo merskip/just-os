@@ -32,7 +32,7 @@ impl MockFrameBuffer {
 
 impl FrameBuffer for MockFrameBuffer {
     fn get_size(&self) -> Size {
-        self.size
+        self.size.clone()
     }
 
     fn set_char(

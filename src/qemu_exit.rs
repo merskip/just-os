@@ -1,5 +1,3 @@
-use crate::interrupts::halt_loop;
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u32)]
 pub enum ExitCode {
@@ -7,12 +5,11 @@ pub enum ExitCode {
     Failed = 0x11,
 }
 
-pub fn qemu_exit(exit_code: ExitCode) -> ! {
+pub fn qemu_exit(exit_code: ExitCode) {
     use x86_64::instructions::port::Port;
 
     unsafe {
         let mut port = Port::new(0xf4);
         port.write(exit_code as u32);
     }
-    halt_loop();
 }
