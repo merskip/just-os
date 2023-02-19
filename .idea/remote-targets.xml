@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="RemoteTargetsManager">
+    <targets>
+      <target name="WSL - Ubuntu" type="wsl" uuid="6f3824b9-5fe6-4190-82e9-e531d00c7249">
+        <config>
+          <option name="distributionMsId" value="Ubuntu" />
+          <option name="projectRootOnTarget" value="/mnt/c/Users/Piotr/AppData/Local/JetBrains/Toolbox/apps/CLion/ch-0/223.8617.54/jbr/bin&#10;/just-os" />
+        </config>
+        <ContributedStateBase type="RsLanguageRuntime">
+          <config>
+            <option name="cargoPath" value="/home/merskip/.cargo/bin/cargo" />
+            <option name="cargoVersion" value="1.67.0 (8ecd4f20a 2023-01-10)" />
+            <option name="rustcPath" value="/home/merskip/.cargo/bin/rustc" />
+            <option name="rustcVersion" value="1.67.0 (fc594f156 2023-01-24)" />
+          </config>
+        </ContributedStateBase>
+      </target>
+    </targets>
+  </component>
+</project>
