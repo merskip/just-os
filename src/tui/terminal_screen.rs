@@ -1,6 +1,7 @@
 use alloc::format;
 use alloc::rc::Rc;
 use alloc::string::{String, ToString};
+use alloc::vec::Vec;
 use core::cell::RefCell;
 use core::fmt::Write;
 use pc_keyboard::{DecodedKey};
@@ -28,13 +29,13 @@ impl Header {
 }
 
 pub struct TerminalScreen<'a> {
-    screen_buffer: &'a RefCell<dyn FrameBuffer>,
     header_writer: ScreenFragmentWriter<'a>,
     header: Header,
     rtc: Rc<Mutex<RTC>>,
     body_writer: ScreenFragmentWriter<'a>,
     prompt: String,
     cursor: Rc<Mutex<dyn Cursor>>,
+    command_buffer: Vec<char>
 }
 
 impl<'a> TerminalScreen<'a> {
@@ -59,13 +60,13 @@ impl<'a> TerminalScreen<'a> {
         );
 
         Self {
-            screen_buffer,
             header_writer,
             header,
             rtc,
             body_writer,
             prompt,
             cursor,
+            command_buffer: Vec::with_capacity(255),
         }
     }
 
@@ -102,8 +103,22 @@ impl TerminalScreen<'_> {
 impl TerminalScreen<'_> {
     pub fn handle_keypress(&mut self, key: DecodedKey) {
         match key {
-            DecodedKey::Unicode(character) => {
-                self.body_writer.write_char(character).unwrap();
+            DecodedKey::Unicode(character) => match character {
+                '\x08' => { // Backspace
+                    self.body_writer.write_char(character).unwrap();
+                    self.command_buffer.pop();
+                },
+                '\n' => { // Carriage Return
+                    self.body_writer.write_char(character).unwrap();
+
+                    self.process_command(self.command_buffer.clone());
+                    self.command_buffer.clear();
+                    self.display_prompt();
+                },
+                _ => {
+                    self.body_writer.write_char(character).unwrap();
+                    self.command_buffer.push(character);
+                },
             },
             DecodedKey::RawKey(key) => {
                 serial_println!("KEYBOARD KEY_CODE={:?}", key);
@@ -120,5 +135,10 @@ impl TerminalScreen<'_> {
     fn refresh_cursor(&mut self) {
         let next_position = self.body_writer.get_next_position();
         self.cursor.lock().move_to(next_position);
+    }
+
+    fn process_command(&mut self, command: Vec<char>) {
+        let command: String = command.iter().collect();
+        writeln!(self.body_writer, "TODO: Process command: {:?}", command).unwrap();
     }
 }

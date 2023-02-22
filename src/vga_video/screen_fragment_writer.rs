@@ -60,6 +60,9 @@ impl Write for ScreenFragmentWriter<'_> {
                 }
                 '\x08' => { // Backspace
                     self.move_to_previous_position();
+                    self.frame_buffer.borrow_mut()
+                        .set_char(self.next_position.clone(), char::default(), self.default_color)
+                        .unwrap();
                 }
                 _ => {
                     self.frame_buffer.borrow_mut()
