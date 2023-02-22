@@ -1,3 +1,4 @@
+use alloc::boxed::Box;
 use core::{
     pin::Pin,
     task::{Context, Poll},
@@ -60,7 +61,7 @@ impl Stream for ScanCodeStream {
     }
 }
 
-pub async fn print_keypresses() {
+pub async fn keyboard_decoding_task(mut handler: Box<dyn FnMut(DecodedKey)>) {
     let mut scancodes = ScanCodeStream::new();
     let mut keyboard = Keyboard::<layouts::Us104Key, ScancodeSet1>::new(HandleControl::Ignore);
 
@@ -71,6 +72,7 @@ pub async fn print_keypresses() {
                     DecodedKey::Unicode(character) => log_info!("KEYBOARD CHAR={}", character),
                     DecodedKey::RawKey(key) => log_info!("KEYBOARD KEY={:?}", key),
                 }
+                handler(key)
             }
         }
     }

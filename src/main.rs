@@ -20,6 +20,7 @@ use core::fmt::Write;
 use core::panic::PanicInfo;
 
 use bootloader::{BootInfo, entry_point};
+use pc_keyboard::{HandleControl, Keyboard, layouts, ScancodeSet1};
 use spin::Mutex;
 use x86_64::VirtAddr;
 
@@ -52,7 +53,6 @@ mod error;
 mod qemu_exit;
 #[cfg(test)]
 use qemu_exit::{ExitCode, qemu_exit};
-use crate::tui::terminal_screen;
 use crate::tui::terminal_screen::{Header, TerminalScreen};
 
 const PKG_NAME: &str = env!("CARGO_PKG_NAME");
@@ -88,7 +88,6 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
 
 
     let rtc = Rc::new(Mutex::new(RTC::new()));
-
     let mut terminal_screen = TerminalScreen::new(
         unsafe { &VGA_FRAME_BUFFER },
         Header::new(String::from(PKG_NAME), String::from(PKG_VERSION)),
@@ -100,8 +99,9 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
     test_main();
 
     let mut executor = Executor::new();
-    // executor.spawn(keyboard::print_keypresses());
-    executor.spawn(terminal_screen::terminal_task(terminal_screen));
+    executor.spawn(keyboard::keyboard_decoding_task(Box::new(move |key| {
+        terminal_screen.handle_keypress(key);
+    })));
     executor.run();
 }
 
