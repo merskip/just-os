@@ -6,7 +6,7 @@ use core::cell::RefCell;
 use core::fmt::Write;
 use pc_keyboard::{DecodedKey};
 use spin::Mutex;
-use crate::command::Command::Command;
+use crate::command::command::Command;
 
 use crate::geometry::position::Point;
 use crate::geometry::rect::Rect;

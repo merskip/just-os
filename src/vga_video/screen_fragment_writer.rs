@@ -87,10 +87,11 @@ impl ScreenFragmentWriter<'_> {
     }
 
     fn move_to_previous_position(&mut self) {
-        if self.next_position.x >= 1 {
+        if self.next_position.x > self.rect.min_x() {
             self.next_position.x -= 1;
-        } else {
-            self.next_position.x = 0; // TODO: Impl move to upper line
+        } else if self.next_position.y > self.rect.min_y() {
+            self.next_position.y -= 1;
+            self.next_position.x = self.rect.max_x();
         }
     }
 

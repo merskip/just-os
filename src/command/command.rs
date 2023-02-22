@@ -26,11 +26,4 @@ impl Command {
             None
         }
     }
-
-    pub fn new(command: String, arguments: Vec<String>) -> Self {
-        Self {
-            command,
-            arguments
-        }
-    }
 }
