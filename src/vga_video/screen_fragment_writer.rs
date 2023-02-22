@@ -5,6 +5,7 @@ use core::fmt::Write;
 use crate::error::Error;
 use crate::geometry::position::Point;
 use crate::geometry::rect::Rect;
+use crate::geometry::size::Size;
 use crate::vga_video::CharacterColor;
 use crate::vga_video::frame_buffer::FrameBuffer;
 
@@ -23,6 +24,14 @@ impl<'a> ScreenFragmentWriter<'a> {
             frame_buffer,
             next_position: rect.corner_upper_left(),
         }
+    }
+
+    pub fn reset_cursor(&mut self) {
+        self.next_position = self.rect.corner_upper_left();
+    }
+
+    pub fn get_size(&self) -> Size {
+        self.rect.size.clone()
     }
 }
 

@@ -14,10 +14,13 @@ extern crate bitflags;
 
 use alloc::boxed::Box;
 use alloc::format;
+use alloc::rc::Rc;
+use alloc::string::String;
 use core::fmt::Write;
 use core::panic::PanicInfo;
 
 use bootloader::{BootInfo, entry_point};
+use spin::Mutex;
 use x86_64::VirtAddr;
 
 use crate::geometry::position::Point;
@@ -49,6 +52,7 @@ mod error;
 mod qemu_exit;
 #[cfg(test)]
 use qemu_exit::{ExitCode, qemu_exit};
+use crate::tui::terminal_screen::{Header, TerminalScreen};
 
 const PKG_NAME: &str = env!("CARGO_PKG_NAME");
 const PKG_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -66,15 +70,8 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
             .expect("heap allocator initialization failed");
     }
 
-    let mut logs_fragment_writer = ScreenFragmentWriter::new(
-        Rect::new(Point::new(0, 2), Size::new(80, 23)),
-        CharacterColor::default(),
-        unsafe { &VGA_FRAME_BUFFER },
-    );
-
     KERNEL_LOGGER.lock().register_listener(Box::new(move |log| {
         serial_println!("{}", &log);
-        writeln!(logs_fragment_writer, "{}", log).unwrap();
     }));
 
     log_info!("{} (ver. {})", PKG_NAME, PKG_VERSION);
@@ -88,9 +85,15 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
     interrupts::enable();
     log_info!("Interrupts enabled");
 
-    let mut rtc = RTC::new();
-    let now = rtc.read_datetime();
-    log_info!("Now: {}", now);
+
+    let rtc = Rc::new(Mutex::new(RTC::new()));
+
+    let mut terminal_screen = TerminalScreen::new(
+        unsafe { &VGA_FRAME_BUFFER },
+        Header::new(String::from(PKG_NAME), String::from(PKG_VERSION)),
+        rtc.clone(),
+    );
+    terminal_screen.refresh_header();
 
     #[cfg(test)]
     test_main();
