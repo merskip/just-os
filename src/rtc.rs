@@ -46,8 +46,8 @@ pub struct RTC {
 impl RTC {
     pub fn new() -> Self {
         RTC {
-            address_port: PortWriteOnly::<u8>::new(0x70),
-            data_port: PortReadOnly::<u8>::new(0x71),
+            address_port: PortWriteOnly::new(0x70),
+            data_port: PortReadOnly::new(0x71),
         }
     }
 }

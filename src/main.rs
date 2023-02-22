@@ -54,6 +54,7 @@ mod qemu_exit;
 #[cfg(test)]
 use qemu_exit::{ExitCode, qemu_exit};
 use crate::tui::terminal_screen::{Header, TerminalScreen};
+use crate::vga_video::cursor::VgaCursor;
 
 const PKG_NAME: &str = env!("CARGO_PKG_NAME");
 const PKG_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -88,11 +89,13 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
 
 
     let rtc = Rc::new(Mutex::new(RTC::new()));
+    let cursor = Rc::new(Mutex::new(VgaCursor::new()));
     let mut terminal_screen = TerminalScreen::new(
         unsafe { &VGA_FRAME_BUFFER },
         Header::new(String::from(PKG_NAME), String::from(PKG_VERSION)),
         rtc.clone(),
         String::from("> "),
+        cursor,
     );
     terminal_screen.begin();
 

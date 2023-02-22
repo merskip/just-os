@@ -9,6 +9,7 @@ pub mod frame_buffer;
 
 #[cfg(test)]
 pub mod mock_frame_buffer;
+pub mod cursor;
 
 pub static mut VGA_FRAME_BUFFER: RefCell<VgaFrameBuffer> = unsafe {
     RefCell::new(VgaFrameBuffer::new(0xb8000))

@@ -11,6 +11,7 @@ use crate::geometry::rect::Rect;
 use crate::geometry::size::Size;
 use crate::rtc::RTC;
 use crate::vga_video::{CharacterColor};
+use crate::vga_video::cursor::Cursor;
 use crate::vga_video::frame_buffer::FrameBuffer;
 use crate::vga_video::screen_fragment_writer::ScreenFragmentWriter;
 
@@ -31,6 +32,7 @@ pub struct TerminalScreen<'a> {
     rtc: Rc<Mutex<RTC>>,
     body_writer: ScreenFragmentWriter<'a>,
     prompt: String,
+    cursor: Rc<Mutex<dyn Cursor>>,
 }
 
 impl<'a> TerminalScreen<'a> {
@@ -39,6 +41,7 @@ impl<'a> TerminalScreen<'a> {
         header: Header,
         rtc: Rc<Mutex<RTC>>,
         prompt: String,
+        cursor: Rc<Mutex<dyn Cursor>>,
     ) -> Self {
         let screen_size = screen_buffer.borrow().get_size();
         let header_writer = ScreenFragmentWriter::new(
@@ -59,6 +62,7 @@ impl<'a> TerminalScreen<'a> {
             rtc,
             body_writer,
             prompt,
+            cursor,
         }
     }
 
