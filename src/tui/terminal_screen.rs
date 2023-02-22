@@ -6,6 +6,7 @@ use core::cell::RefCell;
 use core::fmt::Write;
 use pc_keyboard::{DecodedKey};
 use spin::Mutex;
+use crate::command::Command::Command;
 
 use crate::geometry::position::Point;
 use crate::geometry::rect::Rect;
@@ -35,7 +36,7 @@ pub struct TerminalScreen<'a> {
     body_writer: ScreenFragmentWriter<'a>,
     prompt: String,
     cursor: Rc<Mutex<dyn Cursor>>,
-    command_buffer: Vec<char>
+    command_buffer: Vec<char>,
 }
 
 impl<'a> TerminalScreen<'a> {
@@ -105,24 +106,25 @@ impl TerminalScreen<'_> {
         match key {
             DecodedKey::Unicode(character) => match character {
                 '\x08' => { // Backspace
-                    self.body_writer.write_char(character).unwrap();
-                    self.command_buffer.pop();
-                },
+                    if let Some(_) = self.command_buffer.pop() {
+                        self.body_writer.write_char(character).unwrap();
+                    }
+                }
                 '\n' => { // Carriage Return
                     self.body_writer.write_char(character).unwrap();
 
-                    self.process_command(self.command_buffer.clone());
+                    self.process_command_text();
                     self.command_buffer.clear();
                     self.display_prompt();
-                },
+                }
                 _ => {
                     self.body_writer.write_char(character).unwrap();
                     self.command_buffer.push(character);
-                },
+                }
             },
             DecodedKey::RawKey(key) => {
                 serial_println!("KEYBOARD KEY_CODE={:?}", key);
-            },
+            }
         }
         self.refresh_cursor();
     }
@@ -137,8 +139,14 @@ impl TerminalScreen<'_> {
         self.cursor.lock().move_to(next_position);
     }
 
-    fn process_command(&mut self, command: Vec<char>) {
-        let command: String = command.iter().collect();
-        writeln!(self.body_writer, "TODO: Process command: {:?}", command).unwrap();
+    fn process_command_text(&mut self) {
+        let command = Command::parse(self.command_buffer.iter().collect());
+        if let Some(command) = command {
+            self.process_command(command)
+        }
+    }
+
+    fn process_command(&mut self, command: Command) {
+        writeln!(self.body_writer, "TODO: Process command\n{:#?}", command).unwrap();
     }
 }

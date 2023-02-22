@@ -48,9 +48,11 @@ mod vga_video;
 mod geometry;
 mod serial;
 mod error;
+mod command;
 
 #[cfg(test)]
 mod qemu_exit;
+
 #[cfg(test)]
 use qemu_exit::{ExitCode, qemu_exit};
 use crate::tui::terminal_screen::{Header, TerminalScreen};
