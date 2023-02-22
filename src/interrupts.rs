@@ -22,7 +22,7 @@ lazy_static! {
         }
         idt.page_fault.set_handler_fn(page_fault_handler);
         idt[ExternalInterrupt::Timer.as_usize()].set_handler_fn(timer_interrupt_handler);
-        idt[ExternalInterrupt::Keybaord.as_usize()].set_handler_fn(keybaord_handler);
+        idt[ExternalInterrupt::Keyboard.as_usize()].set_handler_fn(keyboard_handler);
         idt
     };
     static ref PICS: Mutex<ChainedPics> =
@@ -52,7 +52,7 @@ pub fn halt_loop() -> ! {
 #[repr(u8)]
 enum ExternalInterrupt {
     Timer = PIC_1_OFFSET,
-    Keybaord = PIC_1_OFFSET + 1,
+    Keyboard = PIC_1_OFFSET + 1,
 }
 
 impl ExternalInterrupt {
@@ -98,7 +98,7 @@ extern "x86-interrupt" fn timer_interrupt_handler(_stack_frame: InterruptStackFr
     }
 }
 
-extern "x86-interrupt" fn keybaord_handler(_stack_frame: InterruptStackFrame) {
+extern "x86-interrupt" fn keyboard_handler(_stack_frame: InterruptStackFrame) {
     let mut port = Port::new(0x60);
     let scan_code: u8 = unsafe { port.read() };
 
@@ -106,6 +106,6 @@ extern "x86-interrupt" fn keybaord_handler(_stack_frame: InterruptStackFrame) {
 
     unsafe {
         PICS.lock()
-            .notify_end_of_interrupt(ExternalInterrupt::Keybaord.as_u8())
+            .notify_end_of_interrupt(ExternalInterrupt::Keyboard.as_u8())
     }
 }
