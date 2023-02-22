@@ -92,8 +92,9 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
         unsafe { &VGA_FRAME_BUFFER },
         Header::new(String::from(PKG_NAME), String::from(PKG_VERSION)),
         rtc.clone(),
+        String::from("> "),
     );
-    terminal_screen.refresh_header();
+    terminal_screen.begin();
 
     #[cfg(test)]
     test_main();

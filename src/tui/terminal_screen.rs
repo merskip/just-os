@@ -30,6 +30,7 @@ pub struct TerminalScreen<'a> {
     header: Header,
     rtc: Rc<Mutex<RTC>>,
     body_writer: ScreenFragmentWriter<'a>,
+    prompt: String,
 }
 
 impl<'a> TerminalScreen<'a> {
@@ -37,6 +38,7 @@ impl<'a> TerminalScreen<'a> {
         screen_buffer: &'a RefCell<dyn FrameBuffer>,
         header: Header,
         rtc: Rc<Mutex<RTC>>,
+        prompt: String,
     ) -> Self {
         let screen_size = screen_buffer.borrow().get_size();
         let header_writer = ScreenFragmentWriter::new(
@@ -56,7 +58,13 @@ impl<'a> TerminalScreen<'a> {
             header,
             rtc,
             body_writer,
+            prompt,
         }
+    }
+
+    pub fn begin(&mut self) {
+        self.refresh_header();
+        self.display_prompt();
     }
 }
 
@@ -91,5 +99,9 @@ impl TerminalScreen<'_> {
                 writeln!(self.body_writer, "KEYBOARD KEY={:?}", key).unwrap();
             },
         }
+    }
+
+    fn display_prompt(&mut self) {
+        self.body_writer.write_str(&*self.prompt).unwrap();
     }
 }
