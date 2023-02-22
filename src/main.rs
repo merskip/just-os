@@ -58,6 +58,7 @@ entry_point!(kernel_main);
 #[no_mangle]
 fn kernel_main(boot_info: &'static BootInfo) -> ! {
     unsafe {
+        serial_println!("Physical memory offset: {:#x}", boot_info.physical_memory_offset);
         let mut mapper = memory::init(VirtAddr::new(boot_info.physical_memory_offset));
         let mut frame_allocator = memory::BootInfoFrameAllocator::new(&boot_info.memory_map);
 
@@ -72,15 +73,20 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
     );
 
     KERNEL_LOGGER.lock().register_listener(Box::new(move |log| {
-        serial_println!("{:?}", &log);
+        serial_println!("{}", &log);
         writeln!(logs_fragment_writer, "{}", log).unwrap();
     }));
 
     log_info!("{} (ver. {})", PKG_NAME, PKG_VERSION);
 
     interrupts::init();
+    log_info!("Interrupts initialized");
+
     gdt::init();
+    log_info!("GDT initialized");
+
     interrupts::enable();
+    log_info!("Interrupts enabled");
 
     let mut rtc = RTC::new();
     let now = rtc.read_datetime();
