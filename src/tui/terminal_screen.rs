@@ -4,16 +4,31 @@ use alloc::rc::Rc;
 use alloc::string::{String, ToString};
 use core::cell::RefCell;
 use core::fmt::Write;
+use futures_util::StreamExt;
+use pc_keyboard::{DecodedKey, HandleControl, Keyboard, layouts, ScancodeSet1};
 use spin::Mutex;
 
 use crate::geometry::position::Point;
 use crate::geometry::rect::Rect;
 use crate::geometry::size::Size;
 use crate::rtc::RTC;
-use crate::serial_println;
-use crate::vga_video::{CharacterColor, Color};
+use crate::task::keyboard::ScanCodeStream;
+use crate::vga_video::{CharacterColor};
 use crate::vga_video::frame_buffer::FrameBuffer;
 use crate::vga_video::screen_fragment_writer::ScreenFragmentWriter;
+
+pub async fn terminal_task(mut terminal_screen: TerminalScreen<'_>) {
+    let mut scancodes = ScanCodeStream::new();
+    let mut keyboard = Keyboard::<layouts::Us104Key, ScancodeSet1>::new(HandleControl::Ignore);
+
+    while let Some(scan_code) = scancodes.next().await {
+        if let Ok(Some(key_event)) = keyboard.add_byte(scan_code) {
+            if let Some(key) = keyboard.process_keyevent(key_event) {
+                terminal_screen.handle_keypress(key);
+            }
+        }
+    }
+}
 
 pub struct Header {
     name: String,
@@ -47,7 +62,7 @@ impl<'a> TerminalScreen<'a> {
         );
 
         let body_writer = ScreenFragmentWriter::new(
-            Rect::new(Point::new(0, 2), Size::new(screen_size.width, screen_size.width - 1)),
+            Rect::new(Point::new(0, 1), Size::new(screen_size.width, screen_size.height - 1)),
             CharacterColor::default(),
             screen_buffer,
         );
@@ -79,5 +94,19 @@ impl TerminalScreen<'_> {
 
         self.header_writer.reset_cursor();
         self.header_writer.write_str(&*header).unwrap();
+    }
+}
+
+impl TerminalScreen<'_> {
+
+    fn handle_keypress(&mut self, key: DecodedKey) {
+        match key {
+            DecodedKey::Unicode(character) => {
+                writeln!(self.body_writer, "KEYBOARD CHAR={}", character).unwrap();
+            },
+            DecodedKey::RawKey(key) => {
+                writeln!(self.body_writer, "KEYBOARD KEY={:?}", key).unwrap();
+            },
+        }
     }
 }

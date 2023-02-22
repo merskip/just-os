@@ -52,6 +52,7 @@ mod error;
 mod qemu_exit;
 #[cfg(test)]
 use qemu_exit::{ExitCode, qemu_exit};
+use crate::tui::terminal_screen;
 use crate::tui::terminal_screen::{Header, TerminalScreen};
 
 const PKG_NAME: &str = env!("CARGO_PKG_NAME");
@@ -99,7 +100,8 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
     test_main();
 
     let mut executor = Executor::new();
-    executor.spawn(keyboard::print_keypresses());
+    // executor.spawn(keyboard::print_keypresses());
+    executor.spawn(terminal_screen::terminal_task(terminal_screen));
     executor.run();
 }
 
