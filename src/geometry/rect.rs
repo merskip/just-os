@@ -18,7 +18,7 @@ impl Rect {
     pub fn from(x: usize, y: usize, width: usize, height: usize) -> Self {
         Self {
             origin: Point::new(x, y),
-            size: Size::new(width, height)
+            size: Size::new(width, height),
         }
     }
 }
@@ -71,6 +71,15 @@ impl Rect {
     }
 }
 
+impl Rect {
+    pub fn points(&self) -> impl Iterator<Item=Point> {
+        let origin = self.origin.clone();
+        self.size.points().map(move |point|
+            Point::new(origin.x + point.x, origin.y + point.y)
+        )
+    }
+}
+
 #[test_case]
 fn test_rect_min_and_max() {
     let rect = Rect::from(2, 2, 3, 3);
@@ -88,7 +97,7 @@ fn test_rect_contains() {
     assert!(rect.contains(Point::new(2, 2)));
     assert!(rect.contains(Point::new(4, 2)));
     assert!(rect.contains(Point::new(2, 4)));
-    assert!(rect.contains(Point::new(4 ,4)));
+    assert!(rect.contains(Point::new(4, 4)));
 
     assert!(!rect.contains(Point::new(1, 1)));
     assert!(!rect.contains(Point::new(2, 1)));

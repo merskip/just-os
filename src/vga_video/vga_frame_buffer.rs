@@ -16,11 +16,11 @@ struct ScreenCharacter {
     pub color: CharacterColor,
 }
 
-const SCREEN_SIZE: Size = Size::new(80, 25);
+pub(crate) const VGA_SCREEN_SIZE: Size = Size::new(80, 25);
 
 #[repr(transparent)]
 pub struct VgaFrameBuffer {
-    characters: *mut [Volatile<ScreenCharacter>; SCREEN_SIZE.area()],
+    characters: *mut [Volatile<ScreenCharacter>; VGA_SCREEN_SIZE.area()],
 }
 
 impl VgaFrameBuffer {
@@ -33,7 +33,7 @@ impl VgaFrameBuffer {
 
 impl FrameBuffer for VgaFrameBuffer {
     fn get_size(&self) -> Size {
-        SCREEN_SIZE
+        VGA_SCREEN_SIZE
     }
 
     fn set_char(&mut self, position: Point, character: char, color: CharacterColor) -> Result<(), Box<dyn Error>> {

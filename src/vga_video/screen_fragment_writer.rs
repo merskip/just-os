@@ -26,8 +26,20 @@ impl<'a> ScreenFragmentWriter<'a> {
         }
     }
 
-    pub fn reset_cursor(&mut self) {
+    pub fn clear(&mut self) {
+        for point in self.rect.points() {
+            self.frame_buffer.borrow_mut()
+                .set_char(point, char::default(), self.default_color)
+                .unwrap();
+        }
+    }
+
+    pub fn reset_position(&mut self) {
         self.next_position = self.rect.corner_upper_left();
+    }
+
+    pub fn get_next_position(&self) -> Point {
+        self.next_position.clone()
     }
 
     pub fn get_size(&self) -> Size {
@@ -46,9 +58,12 @@ impl Write for ScreenFragmentWriter<'_> {
                 '\n' => {
                     self.move_to_next_line();
                 }
+                '\x08' => { // Backspace
+                    self.move_to_previous_position();
+                }
                 _ => {
                     self.frame_buffer.borrow_mut()
-                        .set_char(self.next_position, char, self.default_color)
+                        .set_char(self.next_position.clone(), char, self.default_color)
                         .unwrap();
                     self.move_to_next_position();
                 }
@@ -63,8 +78,16 @@ impl ScreenFragmentWriter<'_> {
         self.next_position.x += 1;
 
         // Check if needed move to next line
-        if !self.rect.contains(self.next_position) {
+        if !self.rect.contains(self.next_position.clone()) {
             self.move_to_next_line();
+        }
+    }
+
+    fn move_to_previous_position(&mut self) {
+        if self.next_position.x >= 1 {
+            self.next_position.x -= 1;
+        } else {
+            self.next_position.x = 0; // TODO: Impl move to upper line
         }
     }
 

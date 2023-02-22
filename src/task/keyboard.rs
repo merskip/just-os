@@ -68,10 +68,6 @@ pub async fn keyboard_decoding_task(mut handler: Box<dyn FnMut(DecodedKey)>) {
     while let Some(scan_code) = scancodes.next().await {
         if let Ok(Some(key_event)) = keyboard.add_byte(scan_code) {
             if let Some(key) = keyboard.process_keyevent(key_event) {
-                match key {
-                    DecodedKey::Unicode(character) => log_info!("KEYBOARD CHAR={}", character),
-                    DecodedKey::RawKey(key) => log_info!("KEYBOARD KEY={:?}", key),
-                }
                 handler(key)
             }
         }

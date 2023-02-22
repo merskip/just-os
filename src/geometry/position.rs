@@ -1,6 +1,6 @@
 use core::fmt::{Display, Formatter};
 
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub struct Point {
     pub x: usize,
     pub y: usize,

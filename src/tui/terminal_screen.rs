@@ -10,8 +10,9 @@ use crate::geometry::position::Point;
 use crate::geometry::rect::Rect;
 use crate::geometry::size::Size;
 use crate::rtc::RTC;
+use crate::serial_println;
 use crate::vga_video::{CharacterColor};
-use crate::vga_video::cursor::Cursor;
+use crate::vga_video::cursor::{Cursor, CursorStyle};
 use crate::vga_video::frame_buffer::FrameBuffer;
 use crate::vga_video::screen_fragment_writer::ScreenFragmentWriter;
 
@@ -27,6 +28,7 @@ impl Header {
 }
 
 pub struct TerminalScreen<'a> {
+    screen_buffer: &'a RefCell<dyn FrameBuffer>,
     header_writer: ScreenFragmentWriter<'a>,
     header: Header,
     rtc: Rc<Mutex<RTC>>,
@@ -57,6 +59,7 @@ impl<'a> TerminalScreen<'a> {
         );
 
         Self {
+            screen_buffer,
             header_writer,
             header,
             rtc,
@@ -68,6 +71,9 @@ impl<'a> TerminalScreen<'a> {
 
     pub fn begin(&mut self) {
         self.refresh_header();
+
+        self.body_writer.clear();
+        self.cursor.lock().enable(CursorStyle::Underline);
         self.display_prompt();
     }
 }
@@ -88,7 +94,7 @@ impl TerminalScreen<'_> {
         let header = format!("{:<}{:^width$}{:>}",
                              left, center, right, width = center_width);
 
-        self.header_writer.reset_cursor();
+        self.header_writer.reset_position();
         self.header_writer.write_str(&*header).unwrap();
     }
 }
@@ -97,15 +103,22 @@ impl TerminalScreen<'_> {
     pub fn handle_keypress(&mut self, key: DecodedKey) {
         match key {
             DecodedKey::Unicode(character) => {
-                writeln!(self.body_writer, "KEYBOARD CHAR={}", character).unwrap();
+                self.body_writer.write_char(character).unwrap();
             },
             DecodedKey::RawKey(key) => {
-                writeln!(self.body_writer, "KEYBOARD KEY={:?}", key).unwrap();
+                serial_println!("KEYBOARD KEY_CODE={:?}", key);
             },
         }
+        self.refresh_cursor();
     }
 
     fn display_prompt(&mut self) {
         self.body_writer.write_str(&*self.prompt).unwrap();
+        self.refresh_cursor();
+    }
+
+    fn refresh_cursor(&mut self) {
+        let next_position = self.body_writer.get_next_position();
+        self.cursor.lock().move_to(next_position);
     }
 }
