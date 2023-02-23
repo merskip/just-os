@@ -35,7 +35,7 @@ impl Header {
 }
 
 pub struct TerminalScreen<'a> {
-    header_writer: ScreenFragmentWriter<'a>,
+    header_writer: RefCell<ScreenFragmentWriter<'a>>,
     header: Header,
     rtc: Rc<Mutex<RTC>>,
     body_writer: Rc<RefCell<ScreenFragmentWriter<'a>>>,
@@ -68,7 +68,7 @@ impl<'a> TerminalScreen<'a> {
         );
 
         Self {
-            header_writer,
+            header_writer: RefCell::new(header_writer),
             header,
             rtc,
             body_writer: Rc::new(RefCell::new(body_writer)),
@@ -93,7 +93,7 @@ impl<'a> TerminalScreen<'a> {
 }
 
 impl TerminalScreen<'_> {
-    pub fn refresh_header(&mut self) {
+    pub fn refresh_header(&self) {
         let now = self.rtc.lock().read_datetime();
         self.display_header(
             "",
@@ -102,14 +102,16 @@ impl TerminalScreen<'_> {
         )
     }
 
-    fn display_header(&mut self, left: &str, center: &str, right: &str) {
-        let total_width = self.header_writer.get_size().width;
+    fn display_header(&self, left: &str, center: &str, right: &str) {
+        let mut header_writer = self.header_writer.borrow_mut();
+
+        let total_width = header_writer.get_size().width;
         let center_width = total_width - left.len() - right.len();
         let header = format!("{:<}{:^width$}{:>}",
                              left, center, right, width = center_width);
 
-        self.header_writer.reset_position();
-        self.header_writer.write_str(&*header).unwrap();
+        header_writer.reset_position();
+        header_writer.write_str(&*header).unwrap();
     }
 }
 

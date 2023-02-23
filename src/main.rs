@@ -112,12 +112,19 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
 
     io::set_standard_output_writer(terminal_screen.get_standard_output());
 
+    let terminal_screen = Rc::new(terminal_screen);
+    let terminal_screen_2 = terminal_screen.clone();
+    interrupts::set_timer_handler(Box::new(move || {
+        terminal_screen_2.refresh_header();
+    }));
+
     #[cfg(test)]
     test_main();
 
     let mut executor = Executor::new();
+    let terminal_screen_3 = terminal_screen.clone();
     executor.spawn(keyboard::keyboard_decoding_task(Box::new(move |key| {
-        terminal_screen.handle_keypress(key);
+        terminal_screen_3.handle_keypress(key);
     })));
     executor.run();
 }

@@ -1,3 +1,4 @@
+use alloc::boxed::Box;
 use lazy_static::lazy_static;
 use pic8259::ChainedPics;
 use spin::Mutex;
@@ -29,6 +30,8 @@ lazy_static! {
         Mutex::new(unsafe { ChainedPics::new(PIC_1_OFFSET, PIC_2_OFFSET) });
 }
 
+static mut TIMER_HANDLER: Option<Box<dyn Fn()>> = None;
+
 pub fn init() {
     IDT.load();
     unsafe { PICS.lock().initialize() };
@@ -45,6 +48,12 @@ pub fn disable() {
 pub fn halt_loop() -> ! {
     loop {
         instructions::hlt();
+    }
+}
+
+pub fn set_timer_handler(handler: Box<dyn Fn()>) {
+    unsafe {
+        TIMER_HANDLER.replace(handler);
     }
 }
 
@@ -91,7 +100,11 @@ extern "x86-interrupt" fn page_fault_handler(
 }
 
 extern "x86-interrupt" fn timer_interrupt_handler(_stack_frame: InterruptStackFrame) {
-    // println!("timer_interrupt");
+    unsafe {
+        if let Some(handler) = &TIMER_HANDLER {
+            handler();
+        }
+    }
     unsafe {
         PICS.lock()
             .notify_end_of_interrupt(ExternalInterrupt::Timer.as_u8())
