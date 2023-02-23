@@ -3,8 +3,8 @@ use alloc::vec::Vec;
 
 #[derive(Debug)]
 pub struct Command {
-    command: String,
-    arguments: Vec<String>,
+    pub command: String,
+    pub arguments: Vec<String>,
 }
 
 impl Command {

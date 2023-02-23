@@ -1,11 +1,16 @@
+use alloc::boxed::Box;
 use alloc::format;
 use alloc::rc::Rc;
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
-use core::cell::RefCell;
+use core::borrow::BorrowMut;
+use core::cell::{Cell, RefCell};
 use core::fmt::Write;
+use core::ops::Deref;
 use pc_keyboard::{DecodedKey};
+use spin::lock_api::MutexGuard;
 use spin::Mutex;
+use crate::command::command;
 use crate::command::command::Command;
 
 use crate::geometry::position::Point;
@@ -33,10 +38,11 @@ pub struct TerminalScreen<'a> {
     header_writer: ScreenFragmentWriter<'a>,
     header: Header,
     rtc: Rc<Mutex<RTC>>,
-    body_writer: ScreenFragmentWriter<'a>,
+    body_writer: Rc<RefCell<ScreenFragmentWriter<'a>>>,
     prompt: String,
     cursor: Rc<Mutex<dyn Cursor>>,
-    command_buffer: Vec<char>,
+    command_buffer: RefCell<Vec<char>>,
+    command_handler: Box<dyn Fn(Command)>,
 }
 
 impl<'a> TerminalScreen<'a> {
@@ -46,6 +52,7 @@ impl<'a> TerminalScreen<'a> {
         rtc: Rc<Mutex<RTC>>,
         prompt: String,
         cursor: Rc<Mutex<dyn Cursor>>,
+        command_handler: Box<dyn Fn(Command)>,
     ) -> Self {
         let screen_size = screen_buffer.borrow().get_size();
         let header_writer = ScreenFragmentWriter::new(
@@ -64,19 +71,24 @@ impl<'a> TerminalScreen<'a> {
             header_writer,
             header,
             rtc,
-            body_writer,
+            body_writer: Rc::new(RefCell::new(body_writer)),
             prompt,
             cursor,
-            command_buffer: Vec::with_capacity(255),
+            command_buffer: RefCell::new(Vec::with_capacity(255)),
+            command_handler,
         }
     }
 
     pub fn begin(&mut self) {
         self.refresh_header();
 
-        self.body_writer.clear();
+        (*self.body_writer).borrow_mut().clear();
         self.cursor.lock().enable(CursorStyle::Underline);
         self.display_prompt();
+    }
+
+    pub fn get_standard_output(&self) -> Rc<RefCell<dyn Write + 'a>> {
+        return self.body_writer.clone();
     }
 }
 
@@ -102,51 +114,58 @@ impl TerminalScreen<'_> {
 }
 
 impl TerminalScreen<'_> {
-    pub fn handle_keypress(&mut self, key: DecodedKey) {
+    pub fn handle_keypress(&self, key: DecodedKey) {
         match key {
             DecodedKey::Unicode(character) => match character {
                 '\x08' => { // Backspace
-                    if let Some(_) = self.command_buffer.pop() {
-                        self.body_writer.write_char(character).unwrap();
+                    if let Some(_) = self.command_buffer.borrow_mut().pop() {
+                        self.write_body_char(character);
                     }
                 }
                 '\n' => { // Carriage Return
-                    self.body_writer.write_char(character).unwrap();
+                    self.write_body_char(character);
 
-                    self.process_command_text();
-                    self.command_buffer.clear();
+                    self.process_command_text(self.command_buffer.borrow().iter().collect());
+                    self.command_buffer.borrow_mut().clear();
                     self.display_prompt();
                 }
                 _ => {
-                    self.body_writer.write_char(character).unwrap();
-                    self.command_buffer.push(character);
+                    self.write_body_char(character);
+                    self.command_buffer.borrow_mut().push(character);
                 }
             },
             DecodedKey::RawKey(key) => {
                 serial_println!("KEYBOARD KEY_CODE={:?}", key);
             }
         }
-        self.refresh_cursor();
     }
 
-    fn display_prompt(&mut self) {
-        self.body_writer.write_str(&*self.prompt).unwrap();
-        self.refresh_cursor();
+    pub fn display_prompt(&self) {
+        self.write_body_str(&*self.prompt);
     }
 
-    fn refresh_cursor(&mut self) {
-        let next_position = self.body_writer.get_next_position();
+    fn write_body_str(&self, str: &str) {
+        let mut body_writer = (*self.body_writer).borrow_mut();
+
+        body_writer.write_str(str).unwrap();
+
+        let next_position = body_writer.get_next_position();
         self.cursor.lock().move_to(next_position);
     }
 
-    fn process_command_text(&mut self) {
-        let command = Command::parse(self.command_buffer.iter().collect());
-        if let Some(command) = command {
-            self.process_command(command)
-        }
+    fn write_body_char(&self, char: char) {
+        let mut body_writer = (*self.body_writer).borrow_mut();
+
+        body_writer.write_char(char).unwrap();
+
+        let next_position = body_writer.get_next_position();
+        self.cursor.lock().move_to(next_position);
     }
 
-    fn process_command(&mut self, command: Command) {
-        writeln!(self.body_writer, "TODO: Process command\n{:#?}", command).unwrap();
+    fn process_command_text(&self, command_text: String) {
+        let command = Command::parse(command_text);
+        if let Some(command) = command {
+            (self.command_handler)(command)
+        }
     }
 }

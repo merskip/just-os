@@ -16,11 +16,14 @@ use alloc::boxed::Box;
 use alloc::format;
 use alloc::rc::Rc;
 use alloc::string::String;
+use core::borrow::BorrowMut;
+use core::cell::RefCell;
 use core::fmt::Write;
 use core::panic::PanicInfo;
 
 use bootloader::{BootInfo, entry_point};
 use pc_keyboard::{HandleControl, Keyboard, layouts, ScancodeSet1};
+use pc_keyboard::KeyCode::Mute;
 use spin::Mutex;
 use x86_64::VirtAddr;
 
@@ -49,12 +52,15 @@ mod geometry;
 mod serial;
 mod error;
 mod command;
+mod io;
 
 #[cfg(test)]
 mod qemu_exit;
 
 #[cfg(test)]
 use qemu_exit::{ExitCode, qemu_exit};
+use crate::command::command_register::CommandRegister;
+use crate::command::ping_pong_command::ping_pong_command;
 use crate::tui::terminal_screen::{Header, TerminalScreen};
 use crate::vga_video::cursor::VgaCursor;
 
@@ -75,7 +81,7 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
     }
 
     KERNEL_LOGGER.lock().register_listener(Box::new(move |log| {
-        serial_println!("{}", &log);
+        serial_println!("LOG: {}", &log);
     }));
 
     log_info!("{} (ver. {})", PKG_NAME, PKG_VERSION);
@@ -89,6 +95,8 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
     interrupts::enable();
     log_info!("Interrupts enabled");
 
+    let mut command_register = CommandRegister::new();
+    command_register.register("ping", Box::new(ping_pong_command));
 
     let rtc = Rc::new(Mutex::new(RTC::new()));
     let cursor = Rc::new(Mutex::new(VgaCursor::new()));
@@ -98,8 +106,11 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
         rtc.clone(),
         String::from("> "),
         cursor,
+        Box::new(move |command| command_register.perform(command)),
     );
     terminal_screen.begin();
+
+    io::set_standard_output_writer(terminal_screen.get_standard_output());
 
     #[cfg(test)]
     test_main();
