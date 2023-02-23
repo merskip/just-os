@@ -16,27 +16,25 @@ use alloc::boxed::Box;
 use alloc::format;
 use alloc::rc::Rc;
 use alloc::string::String;
-use core::borrow::BorrowMut;
-use core::cell::RefCell;
-use core::fmt::Write;
 use core::panic::PanicInfo;
 
 use bootloader::{BootInfo, entry_point};
-use pc_keyboard::{HandleControl, Keyboard, layouts, ScancodeSet1};
-use pc_keyboard::KeyCode::Mute;
 use spin::Mutex;
 use x86_64::VirtAddr;
 
-use crate::geometry::position::Point;
-use crate::geometry::rect::Rect;
-use crate::geometry::size::Size;
+#[cfg(test)]
+use qemu_exit::{ExitCode, qemu_exit};
+
+use crate::command::command_register::CommandRegister;
+use crate::command::ping_pong_command::ping_pong_command;
 use crate::log::KERNEL_LOGGER;
 use crate::rtc::RTC;
 use crate::task::executor::Executor;
 use crate::task::keyboard;
 use crate::tui::panic_screen::PanicScreen;
-use crate::vga_video::{CharacterColor, VGA_FRAME_BUFFER};
-use crate::vga_video::screen_fragment_writer::ScreenFragmentWriter;
+use crate::tui::terminal_screen::{Header, TerminalScreen};
+use crate::vga_video::{VGA_FRAME_BUFFER};
+use crate::vga_video::cursor::VgaCursor;
 
 mod allocator;
 mod gdt;
@@ -44,7 +42,6 @@ mod interrupts;
 mod log;
 mod memory;
 mod rtc;
-mod stream;
 mod task;
 mod tui;
 mod vga_video;
@@ -56,13 +53,6 @@ mod io;
 
 #[cfg(test)]
 mod qemu_exit;
-
-#[cfg(test)]
-use qemu_exit::{ExitCode, qemu_exit};
-use crate::command::command_register::CommandRegister;
-use crate::command::ping_pong_command::ping_pong_command;
-use crate::tui::terminal_screen::{Header, TerminalScreen};
-use crate::vga_video::cursor::VgaCursor;
 
 const PKG_NAME: &str = env!("CARGO_PKG_NAME");
 const PKG_VERSION: &str = env!("CARGO_PKG_VERSION");

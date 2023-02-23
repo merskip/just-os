@@ -3,22 +3,19 @@ use alloc::format;
 use alloc::rc::Rc;
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
-use core::borrow::BorrowMut;
-use core::cell::{Cell, RefCell};
+use core::cell::{RefCell};
 use core::fmt::Write;
-use core::ops::Deref;
-use pc_keyboard::{DecodedKey};
-use spin::lock_api::MutexGuard;
-use spin::Mutex;
-use crate::command::command;
-use crate::command::command::Command;
 
+use pc_keyboard::DecodedKey;
+use spin::Mutex;
+
+use crate::command::command::Command;
 use crate::geometry::position::Point;
 use crate::geometry::rect::Rect;
 use crate::geometry::size::Size;
 use crate::rtc::RTC;
 use crate::serial_println;
-use crate::vga_video::{CharacterColor};
+use crate::vga_video::CharacterColor;
 use crate::vga_video::cursor::{Cursor, CursorStyle};
 use crate::vga_video::frame_buffer::FrameBuffer;
 use crate::vga_video::screen_fragment_writer::ScreenFragmentWriter;

@@ -1,7 +1,6 @@
-use core::panic::PanicInfo;
-
-use core::cell::{RefCell};
+use core::cell::RefCell;
 use core::fmt::Write;
+use core::panic::PanicInfo;
 
 use crate::{geometry::position::Point, vga_video::{CharacterColor, Color}};
 use crate::geometry::rect::Rect;

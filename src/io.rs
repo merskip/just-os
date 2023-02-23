@@ -2,7 +2,8 @@ use alloc::fmt;
 use alloc::rc::Rc;
 use core::cell::RefCell;
 use core::fmt::Write;
-use crate::{serial_print};
+
+use crate::serial_print;
 
 static mut STANDARD_OUTPUT_WRITER: Option<Rc<RefCell<dyn Write>>> = None;
 

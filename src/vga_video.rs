@@ -1,5 +1,7 @@
 use core::cell::RefCell;
+
 pub use color::*;
+
 use crate::vga_video::vga_frame_buffer::VgaFrameBuffer;
 
 pub mod color;

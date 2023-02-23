@@ -9,7 +9,7 @@ use crossbeam_queue::ArrayQueue;
 use futures_util::{Stream, StreamExt, task::AtomicWaker};
 use pc_keyboard::{DecodedKey, HandleControl, Keyboard, layouts, ScancodeSet1};
 
-use crate::{log_info, log_warning};
+use crate::{log_warning};
 
 static SCAN_CODE_QUEUE: OnceCell<ArrayQueue<u8>> = OnceCell::uninit();
 static SCAN_CODE_QUEUE_SIZE: usize = 255;
@@ -18,7 +18,7 @@ static WAKER: AtomicWaker = AtomicWaker::new();
 pub(crate) fn add_scan_code(scan_code: u8) {
     if let Ok(queue) = SCAN_CODE_QUEUE.try_get() {
         if let Err(_) = queue.push(scan_code) {
-            log_warning!("Scan code queue full, dropping keybaord input")
+            log_warning!("Scan code queue full, dropping keyboard input")
         } else {
             WAKER.wake();
         }

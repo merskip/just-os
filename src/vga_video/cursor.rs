@@ -1,4 +1,5 @@
 use x86_64::instructions::port::Port;
+
 use crate::geometry::position::Point;
 use crate::geometry::size::Size;
 use crate::vga_video::vga_frame_buffer::VGA_SCREEN_SIZE;

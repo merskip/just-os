@@ -1,4 +1,5 @@
 use core::fmt::{Display, Formatter};
+
 use crate::geometry::position::Point;
 
 #[derive(Debug, Clone, Eq, PartialEq)]
