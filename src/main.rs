@@ -26,6 +26,7 @@ use x86_64::VirtAddr;
 use qemu_exit::{ExitCode, qemu_exit};
 
 use crate::command::command_register::CommandRegister;
+use crate::command::cpuid_command::cpuid_command;
 use crate::command::ping_pong_command::ping_pong_command;
 use crate::log::KERNEL_LOGGER;
 use crate::rtc::RTC;
@@ -87,6 +88,7 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
 
     let mut command_register = CommandRegister::new();
     command_register.register("ping", Box::new(ping_pong_command));
+    command_register.register("cpuid", Box::new(cpuid_command));
 
     let rtc = Rc::new(Mutex::new(RTC::new()));
     let cursor = Rc::new(Mutex::new(VgaCursor::new()));
@@ -125,14 +127,19 @@ fn alloc_error_handler(layout: alloc::alloc::Layout) -> ! {
 }
 
 #[panic_handler]
-fn panic(info: &PanicInfo) -> ! {
+unsafe fn panic(info: &PanicInfo) -> ! {
     interrupts::disable();
 
-    serial_println!("[PANIC!]");
-    serial_println!("{:#?}", info);
+    static mut PANIC_LOOP_GUARD: bool = false;
+    if !PANIC_LOOP_GUARD {
+        PANIC_LOOP_GUARD = true;
 
-    let mut panic_screen = PanicScreen::new(unsafe { &VGA_FRAME_BUFFER });
-    panic_screen.display(info);
+        serial_println!("[PANIC!]");
+        serial_println!("{:#?}", info);
+
+        let mut panic_screen = PanicScreen::new(&VGA_FRAME_BUFFER);
+        panic_screen.display(info);
+    }
 
     #[cfg(test)]
     qemu_exit(ExitCode::Failed);
